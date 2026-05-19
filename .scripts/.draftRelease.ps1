@@ -1,75 +1,105 @@
-. "$PSScriptRoot\scriptHelper.ps1"; Set-Location -LiteralPath $repoRoot; & "$PSScriptRoot\.buildAll.ps1"
+#requires -Version 7.0
+. "$PSScriptRoot\scriptHelper.ps1"
+Set-Location -LiteralPath $repoRoot
 
-Write-Host "Version: $versionContents`nIncluded builds:"
-$installerDefs | ForEach-Object { Write-Host "$installerOutput\$($_.Name)" }
-$rids | ForEach-Object { Write-Host "$repoRoot\publish\$_" }
+if ([string]::IsNullOrWhiteSpace($versionContents)) { throw "Version is empty: $version" }
 
-$releaseNotes = $null
-if (Test-Path -LiteralPath $buildNotes) {
-    $bn = Get-Content -LiteralPath $buildNotes -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
-    if ($null -ne $bn -and $bn.Trim().Length -gt 0) {
-        $releaseNotes = $bn.Trim()
-        Write-Host "`nUsing .md/.buildNotes.md for release notes (title is $tag)." -ForegroundColor Cyan
-    }
+& "$PSScriptRoot\.buildAll.ps1"
+
+Write-Host "Version: $versionContents  Tag: $tag  Repo: $ghRepo"
+Write-Host "`nBuild outputs:"
+foreach ($target in $buildTargets) {
+    Write-Host "  $($target.Architecture): $($target.BinFolder)  installer: $installerOutput\$($target.InstallerName)"
 }
-if ($null -eq $releaseNotes) {
-    Write-Host "`nEnter release notes (tabs -> spaces; end with two empty lines):" -ForegroundColor Yellow
-    $lines = @()
-    $empty = 0
-    $any = $false
+
+function Get-ReleaseAssetName {
+    param([ValidateSet('Installer', 'Portable')][string]$Kind, [string]$Architecture)
+    $ext = if ($Kind -eq 'Installer') { 'exe' } else { 'zip' }
+    '{0}{1}_v{2}_{3}.{4}' -f $projectName, $Kind, $versionContents, $Architecture, $ext
+}
+
+function Get-ReleaseNotes {
+    if (Test-Path -LiteralPath $buildNotes) {
+        $fromFile = (Get-Content -LiteralPath $buildNotes -Raw -Encoding UTF8).Trim()
+        if ($fromFile.Length -gt 0) {
+            $rel = $buildNotes.Substring($repoRoot.Length).TrimStart('\')
+            Write-Host "`nUsing $rel for release notes." -ForegroundColor Cyan
+            return $fromFile
+        }
+    }
+
+    Write-Host "`nEnter release notes (tabs -> spaces; finish with two empty lines):" -ForegroundColor Yellow
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $emptyLines = 0
+    $hasContent = $false
     while ($true) {
-        $line = Read-Host ">"
-        if ($line -eq "") {
-            $empty++
-            if ($empty -ge 2) { break }
-            $lines += ""
+        $line = Read-Host '>'
+        if ($line -eq '') {
+            $emptyLines++
+            if ($emptyLines -ge 2) { break }
+            $lines.Add('')
         }
         else {
-            $lines += ($line -replace "`t", "    ")
-            $empty = 0
-            $any = $true
+            $lines.Add(($line -replace "`t", '    '))
+            $emptyLines = 0
+            $hasContent = $true
         }
     }
-    if (-not $any) {
-        Write-Host "Error: No release notes entered." -ForegroundColor Red
-        exit 1
+    if (-not $hasContent) { throw 'No release notes entered.' }
+    return ($lines -join "`n")
+}
+
+function Reset-GitTag {
+    if (git tag -l $tag 2>$null) {
+        Write-Host "Removing local tag $tag..."
+        git tag -d $tag | Out-Null
     }
-    $releaseNotes = $lines -join "`n"
+    $remoteRef = "refs/tags/$tag"
+    $onRemote = @(git ls-remote --tags origin 2>$null | ForEach-Object { ($_ -split "`t", 2)[1] }) -contains $remoteRef
+    if ($onRemote) {
+        Write-Host "Removing remote tag $tag..."
+        git push origin --delete $tag
+        if ($LASTEXITCODE) { throw "Failed to delete remote tag: $tag" }
+    }
 }
 
 $uploadFiles = @()
-foreach ($rid in $rids) {
-    $zip = "$env:TEMP\swagSMBPortable_${tag}_$rid.zip"
-    if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force -ErrorAction SilentlyContinue }
-    Compress-Archive -Path "$repoRoot\publish\$rid\*" -DestinationPath $zip -Force
-    $uploadFiles += $zip
-}
-foreach ($d in $installerDefs) {
-    $dest = "$env:TEMP\$( 'swagSMBInstaller_{0}_{1}.exe' -f $tag, $d.Rid )"
-    if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue }
-    Copy-Item -LiteralPath "$installerOutput\$($d.Name)" -Destination $dest -Force
-    $uploadFiles += $dest
-}
+try {
+    $releaseNotes = Get-ReleaseNotes
 
-if (git tag -l $tag) {
-    Write-Host "Local tag $tag exists. Deleting..."
-    git tag -d $tag
+    Write-Host "`nStaging release assets..."
+    foreach ($target in $buildTargets) {
+        $arch = $target.Architecture
+
+        $portablePath = Join-Path $env:TEMP (Get-ReleaseAssetName -Kind Portable -Architecture $arch)
+        if (Test-Path -LiteralPath $portablePath) { Remove-Item -LiteralPath $portablePath -Force }
+        Compress-Archive -Path (Join-Path $target.BinFolder '*') -DestinationPath $portablePath -Force
+        $uploadFiles += $portablePath
+        Write-Host "  $([IO.Path]::GetFileName($portablePath))"
+
+        $builtInstaller = Join-Path $installerOutput $target.InstallerName
+        if (-not (Test-Path -LiteralPath $builtInstaller)) { throw "Missing installer (run buildInstaller.ps1): $builtInstaller" }
+        $installerPath = Join-Path $env:TEMP (Get-ReleaseAssetName -Kind Installer -Architecture $arch)
+        if (Test-Path -LiteralPath $installerPath) { Remove-Item -LiteralPath $installerPath -Force }
+        Copy-Item -LiteralPath $builtInstaller -Destination $installerPath -Force
+        $uploadFiles += $installerPath
+        Write-Host "  $([IO.Path]::GetFileName($installerPath))"
+    }
+
+    Reset-GitTag
+    git tag $tag
+    if ($LASTEXITCODE) { throw "git tag failed: $tag" }
+    git push origin $tag
+    if ($LASTEXITCODE) { throw "git push tag failed: $tag" }
+
+    Write-Host "`nCreating GitHub release..."
+    & gh release create $tag @uploadFiles --repo $ghRepo --title $tag --notes $releaseNotes
+    if ($LASTEXITCODE) { throw "gh release create failed (exit $LASTEXITCODE)" }
+
+    Write-Host "Release $tag published: https://github.com/$ghRepo/releases/tag/$tag" -ForegroundColor Green
 }
-$remoteTags = @(git ls-remote --tags origin 2>$null | ForEach-Object { ($_ -split "`t")[1] })
-if ($remoteTags -contains "refs/tags/$tag") {
-    Write-Host "Remote tag $tag exists. Deleting..."
-    git push origin --delete $tag
+finally {
+    foreach ($path in $uploadFiles) {
+        Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    }
 }
-
-git tag $tag
-git push origin $tag
-
-$originUrl = (git config --get remote.origin.url 2>$null).Trim().TrimEnd('/')
-if ([string]::IsNullOrWhiteSpace($originUrl) -or $originUrl -notmatch 'github\.com[:/](?<owner>[^/]+)/(?<repo>[^/.]+)(?:\.git)?$') {
-    throw "origin.url missing or not a github.com remote: $originUrl"
-}
-$ghRepo = '{0}/{1}' -f $Matches['owner'], $Matches['repo']
-
-& gh release create $tag @uploadFiles --repo $ghRepo --title "$tag" --notes "$releaseNotes"
-
-$uploadFiles | ForEach-Object { Remove-Item -LiteralPath $_ -Force -ErrorAction SilentlyContinue }
