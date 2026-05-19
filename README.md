@@ -21,9 +21,7 @@ ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0
 ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_arm64.zip
 -->
 
-## ‎ 
-
-## ‎ 
+<br><br>
 
 ## Downloads
 
