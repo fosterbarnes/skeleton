@@ -6,19 +6,19 @@ Includes mock readme (this), scripts, helper, ISCC scripts, version control, res
 
 
 <!-- Quick Reference --
-version = 0.0.1
+version = 0.0.2
 
-x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_x64.exe
+x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_x64.exe
 
-x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_x64.zip
+x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_x64.zip
 
-x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_x86.exe
+x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_x86.exe
 
-x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_x86.zip
+x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_x86.zip
 
-ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_arm64.exe
+ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_arm64.exe
 
-ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_arm64.zip
+ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_arm64.zip
 -->
 
 <br><br>
@@ -28,9 +28,9 @@ ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_x64.exe"><img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_x86.exe"><img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonInstaller_v0.0.1_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_x64.exe"><img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_x86.exe"><img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonInstaller_v0.0.2_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
 </tr>
 </tbody>
 </table>
@@ -38,9 +38,9 @@ ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.0.
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_x64.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_x86.zip"><img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.1/skeletonPortable_v0.0.1_arm64.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_x64.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_x86.zip"><img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.0.2/skeletonPortable_v0.0.2_arm64.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr>
 </tbody>
 </table>

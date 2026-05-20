@@ -4,3 +4,4 @@ obj/
 publish/
 .vs/
 /.installer/Output/
+.md/.buildNotes.md

@@ -13,5 +13,15 @@
     <RootNamespace>skeleton</RootNamespace>
     <AssemblyName>skeleton</AssemblyName>
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <ApplicationIcon>../.resources/icon/skeleton.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="../.resources/icon/skeleton.ico" Link="skeleton.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="../.resources/icon/skeleton256.png" Link="skeleton256.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
