@@ -22,14 +22,22 @@ function Get-ReleaseNotes {
     Write-Host "`nEnter release notes (tabs -> spaces; finish with two empty lines):" -ForegroundColor Yellow
     $lines = [System.Collections.Generic.List[string]]::new()
     $emptyLines = 0
-    while ($emptyLines -lt 2) {
+    $hasContent = $false
+    while ($true) {
         $line = Read-Host '>'
-        if ($line -eq '') { $emptyLines++; $lines.Add('') }
-        else { $emptyLines = 0; $lines.Add($line -replace "`t", '    ') }
+        if ($line -eq '') {
+            $emptyLines++
+            if ($emptyLines -ge 2) { break }
+            $lines.Add('')
+        }
+        else {
+            $lines.Add(($line -replace "`t", '    '))
+            $emptyLines = 0
+            $hasContent = $true
+        }
     }
-    $notes = ($lines -join "`n").Trim()
-    if (-not $notes) { throw 'No release notes entered.' }
-    return $notes
+    if (-not $hasContent) { throw 'No release notes entered.' }
+    return ($lines -join "`n").Trim()
 }
 
 function Reset-GitTag {
