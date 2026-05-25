@@ -13,7 +13,7 @@ public static class AppBranding
 
     public const string RepoOwner = "fosterbarnes";
 
-    public const string CopyrightHolder = "FosterBarnes";
+    public const string CopyrightHolder = "Foster Barnes";
 
     public static string UpdaterTitle => $"{DisplayName} Updater";
 

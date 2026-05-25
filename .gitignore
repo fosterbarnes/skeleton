@@ -3,5 +3,6 @@ bin/
 obj/
 publish/
 .vs/
-/.installer/Output/
+.installer/Output/
 .md/buildNotes.md
+desktop.ini

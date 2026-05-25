@@ -1,13 +1,6 @@
-v0.2.0
+v0.2.1
 
-- Major refactor & design overhaul
-- Port project over to .NET 10 w/ avalonia for cross compatibility
-- Add an updater binary & auto-update settings
-- Fix potential bugs & issues
-- Fix installer scripts 
-- New tabs: Text editor, log, grid view
-- Add font settings
-- Add text size settings
-- Add logging
-- Update screenshots & readme
-- Update scripts
+- Fix link in about
+- Update app settings screenshot
+- Auto-update installer version when building
+- Add file version and copyright info to all built binaries

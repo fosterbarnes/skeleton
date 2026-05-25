@@ -19,6 +19,8 @@ $installerOutput = "$installerFolder\Output"
 $ISCC = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'; if (-not (Test-Path -LiteralPath $ISCC)) { throw "Inno Setup compiler not found: $ISCC" }
 $appPublisher = "fosterbarnes"
 $appURL = "https://github.com/$appPublisher/$projectName"
+$copyrightHolder = 'Foster Barnes'
+$appCopyright = "Copyright © $(Get-Date -Format yyyy) $copyrightHolder"
 $tag = if ([string]::IsNullOrWhiteSpace($versionTagContents)) { "v$versionContents" } else { $versionTagContents }
 $ghRepo = "$appPublisher/$projectName"
 $appIcon = "$repoRoot\.resources\icon\$projectName.ico"
@@ -109,6 +111,31 @@ function Select-BuildTargets {
     $filtered = @($buildTargets | Where-Object { $_.Architecture -eq $Architecture })
     if (-not $filtered.Count) { throw "No build target for architecture: $Architecture" }
     return $filtered
+}
+
+function Sync-InstallerDefines {
+    if ([string]::IsNullOrWhiteSpace($versionContents)) { throw "Version is empty: $version" }
+
+    $defines = [ordered]@{
+        AppVersion   = $versionContents
+        AppCopyright = $appCopyright
+    }
+
+    foreach ($target in $buildTargets) {
+        $path = $target.InstallerScript
+        $content = [IO.File]::ReadAllText($path)
+        $original = $content
+        foreach ($entry in $defines.GetEnumerator()) {
+            $pattern = "#define $($entry.Key) `"[^`"]*`""
+            if ($content -notmatch $pattern) { throw "$path`: missing $($entry.Key) define" }
+            $defineLine = "#define $($entry.Key) `"$($entry.Value)`""
+            $content = [regex]::Replace($content, $pattern, $defineLine, 1)
+        }
+        if ($content -ne $original) {
+            [IO.File]::WriteAllText($path, $content)
+            Write-Host "Updated $($target.Architecture) installer defines (AppVersion=$versionContents)"
+        }
+    }
 }
 
 $publishStripFiles = @(

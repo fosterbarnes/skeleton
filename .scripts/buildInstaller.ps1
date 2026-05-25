@@ -1,6 +1,7 @@
 param([string]$Architecture)
 
 . "$PSScriptRoot\scriptHelper.ps1"; Set-Location $repoRoot
+Sync-InstallerDefines
 $buildTargets = Select-BuildTargets $Architecture
 $appIconIss = "..\.resources\icon\$projectName.ico"
 if ($Architecture) {
@@ -15,7 +16,7 @@ else {
 }
 New-Item -ItemType Directory -Path $installerOutput -Force | Out-Null
 if (-not (Test-Path -LiteralPath $appIcon)) { throw "App icon not found: $appIcon" }
-$issDefines = @{ AppPublisher = $appPublisher; AppURL = $appURL; SetupIconFile = $appIconIss }
+$issDefines = @{ AppVersion = $versionContents; AppCopyright = $appCopyright; AppPublisher = $appPublisher; AppURL = $appURL; SetupIconFile = $appIconIss }
 $isccArgs = @("/DAppVersion=$versionContents", "/DAppPublisher=$appPublisher", "/DAppURL=$appURL", "/DSetupIconFile=$appIconIss")
 foreach ($target in $buildTargets) {
     $iss = Get-Content -LiteralPath $target.InstallerScript -Raw

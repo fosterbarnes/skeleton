@@ -22,7 +22,7 @@ internal static class AboutTabBuilder
 
         var version = new SelectableTextBlock { Text = viewModel.VersionText };
 
-        var repo = new SelectableTextBlock
+        var repo = new TextBlock
         {
             Text = viewModel.RepoUrl,
             Classes = { "about-link" },
@@ -44,7 +44,7 @@ internal static class AboutTabBuilder
             Spacing = 8,
             VerticalAlignment = VerticalAlignment.Top,
             HorizontalAlignment = HorizontalAlignment.Left,
-            Children = { version, repo, checkBtn, lead },
+            Children = { version, lead, repo, checkBtn },
         };
 
         var layout = new Grid

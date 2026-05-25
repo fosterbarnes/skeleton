@@ -3,6 +3,10 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <CopyrightYear>$([System.DateTime]::Now.ToString('yyyy'))</CopyrightYear>
+    <CopyrightHolder>Foster Barnes</CopyrightHolder>
+    <Copyright>Copyright © $(CopyrightYear) $(CopyrightHolder)</Copyright>
+    <Company>$(CopyrightHolder)</Company>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

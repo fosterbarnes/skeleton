@@ -1,7 +1,7 @@
 #define AppName "skeleton"
 #define AppDisplayName "skeleton (x64)"
 #ifndef AppVersion
-#define AppVersion "0.0.0"
+#define AppVersion "0.2.1"
 #endif
 #ifndef AppPublisher
 #define AppPublisher "fosterbarnes"
@@ -12,6 +12,9 @@
 #ifndef SetupIconFile
 #define SetupIconFile "..\.resources\icon\skeleton.ico"
 #endif
+#ifndef AppCopyright
+#define AppCopyright "Copyright © 2026 Foster Barnes"
+#endif
 #define ExeName "skeleton.exe"
 
 [Setup]
@@ -19,6 +22,9 @@ AppId={{7F3E2A91-4D58-4B6C-9E1F-2A8D5C4B7E90}
 AppName={#AppName}
 UninstallDisplayName={#AppDisplayName}
 AppVersion={#AppVersion}
+VersionInfoVersion={#AppVersion}.0
+VersionInfoProductVersion={#AppVersion}
+VersionInfoCopyright={#AppCopyright}
 DisableDirPage=auto
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}

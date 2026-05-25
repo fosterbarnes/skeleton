@@ -7,6 +7,9 @@
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../.resources/icon/skeleton.ico</ApplicationIcon>
+    <Product>skeleton Updater</Product>
+    <Description>skeleton Updater</Description>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <VersionContents>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\.version\version').Trim())</VersionContents>
     <Version>$(VersionContents)</Version>
