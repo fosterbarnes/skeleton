@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>skeleton.Updater</RootNamespace>
+    <AssemblyName>updater</AssemblyName>
+    <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <VersionContents>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\.version\version').Trim())</VersionContents>
+    <Version>$(VersionContents)</Version>
+    <AssemblyVersion>$(VersionContents).0</AssemblyVersion>
+    <FileVersion>$(VersionContents).0</FileVersion>
+    <InformationalVersion>$(VersionContents)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\skeleton.Core\skeleton.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Themes\**" />
+    <AvaloniaResource Include="..\skeleton\Themes\Controls\**\*" Link="Themes\Controls\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\skeleton\Themes\Controls\DataGrid.axaml;..\skeleton\Themes\Controls\MaterialIcon.axaml" />
+    <AvaloniaResource Include="..\skeleton\Themes\Palettes\**\*" Link="Themes\Palettes\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\skeleton\UI\UiTheme.cs" Link="Shared\UiTheme.cs" />
+    <Compile Include="..\skeleton\UI\UiMetrics.cs" Link="Shared\UiMetrics.cs" />
+    <Compile Include="..\skeleton\UI\ThemeBrushKeys.cs" Link="Shared\ThemeBrushKeys.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
+  </ItemGroup>
+</Project>

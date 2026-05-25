@@ -15,7 +15,7 @@
 #define ExeName "skeleton.exe"
 
 [Setup]
-AppId={{C4E8F1A2-3B5D-4E6F-9A0C-1D2E3F4A5B6C}
+AppId={{7F3E2A91-4D58-4B6C-9E1F-2A8D5C4B7E90}
 AppName={#AppName}
 UninstallDisplayName={#AppDisplayName}
 AppVersion={#AppVersion}
@@ -24,7 +24,7 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
 AppUpdatesURL={#AppURL}
-DefaultDirName={localappdata}\{#AppName}\app
+DefaultDirName={localappdata}\{#AppName}
 UninstallDisplayIcon={app}\{#ExeName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -60,3 +60,5 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#ExeName}"; Tasks: desktopic
 
 [Run]
 Filename: "{app}\{#ExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+#include "skeleton.uninstall.iss"

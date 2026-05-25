@@ -1,6 +1,18 @@
+param([string]$Architecture)
+
 . "$PSScriptRoot\scriptHelper.ps1"; Set-Location $repoRoot
+$buildTargets = Select-BuildTargets $Architecture
 $appIconIss = "..\.resources\icon\$projectName.ico"
-Write-Host "Clearing old installers..."; Remove-Item $installerOutput -Recurse -Force -ErrorAction SilentlyContinue
+if ($Architecture) {
+    foreach ($target in $buildTargets) {
+        $builtInstaller = "$installerOutput\$($target.InstallerName)"
+        if (Test-Path -LiteralPath $builtInstaller) { Remove-Item -LiteralPath $builtInstaller -Force }
+    }
+}
+else {
+    Write-Host "Clearing old installers..."
+    Remove-Item $installerOutput -Recurse -Force -ErrorAction SilentlyContinue
+}
 New-Item -ItemType Directory -Path $installerOutput -Force | Out-Null
 if (-not (Test-Path -LiteralPath $appIcon)) { throw "App icon not found: $appIcon" }
 $issDefines = @{ AppPublisher = $appPublisher; AppURL = $appURL; SetupIconFile = $appIconIss }
@@ -12,6 +24,8 @@ foreach ($target in $buildTargets) {
         if ($iss -notmatch [regex]::Escape($line)) { throw "$($target.InstallerScript): $name must match scriptHelper ('$($issDefines[$name])')" }
     }
     if (-not (Test-Path -LiteralPath $target.ExePath)) { throw "Missing publish output (run build.ps1 first): $($target.ExePath)" }
+    $updaterExe = "$($target.BinFolder)\updater.exe"
+    if (-not (Test-Path -LiteralPath $updaterExe)) { throw "Missing updater.exe (run build.ps1 first): $updaterExe" }
     Write-Host "Building $($target.Architecture) installer (AppVersion=$versionContents)"
     & $ISCC @isccArgs $target.InstallerScript
     if ($LASTEXITCODE) { throw "ISCC failed ($LASTEXITCODE): $($target.InstallerScript)" }

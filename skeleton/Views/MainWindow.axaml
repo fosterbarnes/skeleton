@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:skeleton.ViewModels"
+        xmlns:ui="using:skeleton.UI"
+        xmlns:skeleton="using:skeleton"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="skeleton.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{x:Static skeleton:AppBranding.DisplayName}"
+        Width="880"
+        Height="680"
+        MinWidth="880"
+        MinHeight="560">
+
+  <DockPanel>
+    <Border Classes="app-status-bar" DockPanel.Dock="Bottom">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0"
+                   Classes="status-text"
+                   Text="{Binding StatusText}"
+                   VerticalAlignment="Center" />
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="{x:Static ui:UiMetrics.StatusFooterButtonSpacingPx}"
+                    VerticalAlignment="Center">
+          <Button Content="Open"
+                  Command="{Binding OpenTextFileCommand}"
+                  IsVisible="{Binding IsTextEditorTabSelected}" />
+          <Button Content="Save As"
+                  Command="{Binding SaveTextFileAsCommand}"
+                  IsVisible="{Binding IsTextEditorTabSelected}" />
+          <Button Content="Reset to defaults"
+                  Command="{Binding ResetToDefaultsCommand}" />
+          <Button Content="Apply"
+                  Command="{Binding ApplySettingsCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Margin="{x:Static ui:UiMetrics.TabFrameMargin}">
+      <TabControl x:Name="MainTabs"
+                  Classes="app-tabs"
+                  ItemsSource="{Binding TabItems}"
+                  SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}" />
+
+      <TextBox x:Name="SearchBox"
+               Classes="app-search"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Right"
+               Margin="{x:Static ui:UiMetrics.SearchBoxMargin}"
+               PlaceholderText="Search"
+               Text="{Binding SearchQuery, Mode=TwoWay}"
+               IsVisible="{Binding SearchEnabled}" />
+
+      <Popup x:Name="SearchPopup"
+             IsLightDismissEnabled="True"
+             PlacementTarget="{Binding #SearchBox}"
+             Placement="Bottom">
+        <ListBox x:Name="SearchResults"
+                 MaxHeight="{x:Static ui:UiMetrics.SearchDropMaxHeight}"
+                 MinWidth="{x:Static ui:UiMetrics.SearchBoxWidth}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="skeleton:SettingSearchHit">
+              <TextBlock Text="{Binding DisplayText}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Popup>
+    </Grid>
+  </DockPanel>
+</Window>

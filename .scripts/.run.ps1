@@ -1,4 +1,7 @@
-param([Alias('h')][switch]$Help, [Parameter(ValueFromRemainingArguments = $true)][string[]]$AppLaunchArgs)
+param(
+    [Alias('h')][switch]$Help,
+    [Parameter(ValueFromRemainingArguments = $true)][string[]]$AppLaunchArgs
+)
 
 $runHelp = @"
 .run.ps1 [--x86 | --x64 | --arm64 | --portable] [-- app args...]
@@ -48,7 +51,7 @@ while ($true) {
         try { if (-not [Console]::KeyAvailable) { continue } } catch { continue }
         switch ([Console]::ReadKey($true).Key) {
             'Q' { $act = 'quit'; break wait }
-            'R' { $act = 'restart'; break wait }
+            { $_ -in 'R', 'UpArrow' } { $act = 'restart'; break wait }
         }
     }
 

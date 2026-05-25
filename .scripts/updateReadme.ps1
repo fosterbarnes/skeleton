@@ -2,7 +2,7 @@
 if ([string]::IsNullOrWhiteSpace($versionContents)) { throw "Version is empty: $version" }
 if ($readmeContents -notmatch '<!-- Quick Reference --') { throw 'Could not find Quick Reference block in README.md.' }
 
-$releaseBase = "$appURL/releases/download/v$versionContents"
+$releaseBase = "$appURL/releases/download/$tag"
 $quickReferenceLines = @("version = $versionContents")
 $downloadLinks = @{}
 
@@ -11,11 +11,10 @@ foreach ($target in $buildTargets) {
     $label = if ($architecture -eq 'arm64') { 'ARM64' } else { $architecture }
 
     foreach ($packageType in 'Installer', 'Portable') {
-        $extension = if ($packageType -eq 'Installer') { 'exe' } else { 'zip' }
-        $downloadUrl = "$releaseBase/${projectName}${packageType}_v${versionContents}_$architecture.$extension"
+        $downloadUrl = "$releaseBase/$(Get-ReleaseAssetName -Kind $packageType -Architecture $architecture)"
         $quickReferenceLines += "${label}${packageType} = $downloadUrl"
-        if ($packageType -eq 'Portable') { $svgFile = "download_portable_$architecture.svg"} 
-        elseif ($architecture -eq 'arm64') { $svgFile = 'download_arm.svg' } 
+        if ($packageType -eq 'Portable') { $svgFile = "download_portable_$architecture.svg" }
+        elseif ($architecture -eq 'arm64') { $svgFile = 'download_arm.svg' }
         else { $svgFile = "download_$architecture.svg" }
         $downloadLinks[$svgFile] = $downloadUrl
     }

@@ -1,0 +1,116 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:skeleton.UI">
+
+  <Style Selector="TabControl.app-tabs">
+    <Setter Property="Background" Value="{DynamicResource ThemeFormBgBrush}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs /template/ Border#PART_Border">
+    <Setter Property="Background" Value="{DynamicResource ThemeFormBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,0,1,1" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabStrip">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabStripBgBrush}" />
+    <Setter Property="Height" Value="{x:Static ui:UiMetrics.TabStripHeight}" />
+    <Setter Property="Margin" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabStrip ItemsPresenter">
+    <Setter Property="Margin" Value="{x:Static ui:UiMetrics.TabStripItemsMargin}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem">
+    <Setter Property="FontSize" Value="{DynamicResource ThemeFontTab}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabHeight}" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Padding" Value="{x:Static ui:UiMetrics.TabItemPadding}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,0" />
+    <Setter Property="Margin" Value="0,0,-1,0" />
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:selected">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="BorderThickness" Value="1,1,1,0" />
+    <Setter Property="Margin" Value="0,0,-1,-1" />
+    <Setter Property="ZIndex" Value="1" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:not(:selected)">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:not(:selected) /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:not(:selected):pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHoverBgBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:not(:selected):pressed /template/ Border#PART_LayoutRoot">
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:selected /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:selected:pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedHoverBgBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:selected:pressed /template/ Border#PART_LayoutRoot">
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem:selected /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabStripItem:selected /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabStripItem /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+</Styles>

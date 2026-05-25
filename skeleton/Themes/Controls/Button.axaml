@@ -1,0 +1,33 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:skeleton.UI">
+
+  <Style Selector="Button">
+    <Setter Property="FontSize" Value="{DynamicResource ThemeFontBody}" />
+    <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.ControlHeight}" />
+    <Setter Property="Height" Value="{x:Static ui:UiMetrics.ControlHeight}" />
+    <Setter Property="Padding" Value="10,2" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource ThemeButtonBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeButtonForegroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeButtonBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ThemeSurfaceBgBrush}" />
+  </Style>
+
+  <Style Selector="Button.icon-btn">
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="MinWidth" Value="{x:Static ui:UiMetrics.ControlHeight}" />
+    <Setter Property="Width" Value="{x:Static ui:UiMetrics.ControlHeight}" />
+  </Style>
+
+  <Style Selector="Button.icon-text-btn">
+    <Setter Property="Padding" Value="8,2" />
+  </Style>
+
+</Styles>
