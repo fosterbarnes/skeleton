@@ -12,8 +12,7 @@ internal static class OptionPanelBuilder
     public static (Control Content, List<OptionBinding> Bindings) BuildContent(
         SettingCategory category,
         string tabKey,
-        Action<string, Control>? registerNav = null,
-        Action? registerPicker = null)
+        Action<string, Control>? registerNav = null)
     {
         var rowDefs = SettingCatalog.ForCategory(category).Where(SettingCatalog.IsPanelRow).ToList();
         var bindings = new List<OptionBinding>();
@@ -43,7 +42,6 @@ internal static class OptionPanelBuilder
 
             var (row, binding) = CreateOptionRow(def, tabKey);
             AttachShell(bindingByToken[def.Token], binding, def.Token, registerNav);
-            registerPicker?.Invoke();
             return row;
         });
 

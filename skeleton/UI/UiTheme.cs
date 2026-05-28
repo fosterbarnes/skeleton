@@ -143,9 +143,12 @@ internal static class UiTheme
         return theme;
     }
 
+    public static void ApplyWindowThemeVariant(Window window, UiThemeKind theme) =>
+        window.RequestedThemeVariant = ResolveThemeVariant(theme);
+
     public static void ApplyWindowTheme(Window window, UiThemeKind theme)
     {
-        window.RequestedThemeVariant = ResolveThemeVariant(theme);
+        ApplyWindowThemeVariant(window, theme);
         if (Application.Current is { } app)
             ApplyAppTheme(app, theme);
     }

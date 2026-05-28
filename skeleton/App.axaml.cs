@@ -35,6 +35,7 @@ public partial class App : Application
             var prefs = LoadPreferences(store);
             DebugLog.Enabled = prefs.EnableDebugLogging;
             UiFontService.Apply(Current!, prefs);
+            UiTheme.ApplyAppTheme(Current!, prefs.Theme);
 
             if (await StartupUpdateGate.EvaluateAsync(AppContext.BaseDirectory, prefs)
                 == StartupUpdateGateResult.ExitWithoutMainUi)

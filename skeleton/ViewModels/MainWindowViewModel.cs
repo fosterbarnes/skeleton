@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using skeleton.Diagnostics;
@@ -26,6 +27,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private IReadOnlyList<RadioButton>? _demoRadios;
     private bool _updateCheckStarted;
     private bool _suppressTabRestore;
+    private bool _deferTabContentBuild = true;
     private readonly HashSet<Button> _wiredPickers = [];
 
     [ObservableProperty] private string _statusText = string.Empty;
@@ -70,6 +72,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     internal const string AboutTabKey = "About";
 
     private readonly HashSet<string> _builtTabs = new(StringComparer.Ordinal);
+    private GeneralCompositePending? _generalCompositesPending;
+
+    private sealed record GeneralCompositePending(
+        TabItem Page,
+        StackPanel Stack,
+        IReadOnlyList<SettingDefinition> Definitions);
 
     public MainWindowViewModel(AppConfigStore store, UiPreferences prefs)
     {
@@ -161,6 +169,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _optionPanels.Clear();
         _builtTabs.Clear();
         _wiredPickers.Clear();
+        _generalCompositesPending = null;
 
         TabItems.Add(new TabItem { Header = "General", Name = GeneralTabKey, Content = null });
         TabItems.Add(new TabItem { Header = "App Settings", Name = AppSettingsTabKey, Content = null });
@@ -173,6 +182,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         IsTextEditorTabSelected = IsTextEditorTab(SelectedTabIndex);
     }
 
+    public void EndDeferTabContentBuild() => _deferTabContentBuild = false;
+
     public void EnsureSelectedTabContent()
     {
         if (SelectedTabIndex < 0 || SelectedTabIndex >= TabItems.Count)
@@ -183,7 +194,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public void EnsureTabContent(string? tabKey)
     {
-        if (string.IsNullOrEmpty(tabKey) || _builtTabs.Contains(tabKey))
+        if (_deferTabContentBuild || string.IsNullOrEmpty(tabKey) || _builtTabs.Contains(tabKey))
             return;
 
         var tab = FindTab(tabKey);
@@ -267,44 +278,63 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void BuildGeneralTabContent(TabItem page)
     {
+        var (settingsPanel, bindings) = OptionPanelBuilder.BuildContent(
+            SettingCategory.General,
+            GeneralTabKey,
+            (token, target) => _navByToken[token] = (page, target));
+
+        var contentStack = new StackPanel
+        {
+            Spacing = 12,
+            Margin = UiMetrics.TabContentPadding,
+            Children = { settingsPanel },
+        };
+
+        var pageContent = OptionPanelBuilder.CreateScrollHost(contentStack);
+        page.Content = pageContent;
+        _optionPanels.Add((pageContent, bindings));
+
         var compositeDefs = SettingCatalog.ForCategory(SettingCategory.General)
             .Where(d => !SettingCatalog.IsPanelRow(d))
             .ToList();
+        if (compositeDefs.Count == 0)
+            return;
+
+        _generalCompositesPending = new GeneralCompositePending(page, contentStack, compositeDefs);
+        Dispatcher.UIThread.Post(EnsureGeneralCompositesReady, DispatcherPriority.Background);
+    }
+
+    private void EnsureGeneralCompositesReady()
+    {
+        if (_generalCompositesPending is not { } pending)
+            return;
+
+        if (!_builtTabs.Contains(GeneralTabKey)
+            || FindTab(GeneralTabKey) != pending.Page
+            || pending.Page.Content is not ScrollViewer { Content: StackPanel stack }
+            || !ReferenceEquals(stack, pending.Stack)
+            || stack.Children.Count > 1)
+        {
+            _generalCompositesPending = null;
+            return;
+        }
 
         var compositeChildren = new List<Control>();
-
-        foreach (var def in compositeDefs)
+        foreach (var def in pending.Definitions)
         {
             var (content, focusTarget) = CompositePanelBuilder.Build(def, this);
             compositeChildren.Add(UiTheme.CreateGroupBox(def.Label, content, nested: true));
-            _navByToken[def.Token] = (page, focusTarget);
+            _navByToken[def.Token] = (pending.Page, focusTarget);
         }
 
         var compositeStack = new StackPanel { Spacing = 12 };
         foreach (var child in compositeChildren)
             compositeStack.Children.Add(child);
 
-        var (settingsPanel, bindings) = OptionPanelBuilder.BuildContent(
-            SettingCategory.General,
-            GeneralTabKey,
-            (token, target) => _navByToken[token] = (page, target),
-            RegisterPickerButtons);
         var compositeGroup = UiTheme.CreateGroupBox("Composite control examples", compositeStack);
         compositeGroup.Margin = new Thickness(UiMetrics.TabContentPaddingPx, 0, UiMetrics.TabContentPaddingPx, 8);
-        var pageContent = OptionPanelBuilder.CreateScrollHost(new StackPanel
-        {
-            Spacing = 12,
-            Margin = UiMetrics.TabContentPadding,
-            Children =
-            {
-                settingsPanel,
-                compositeGroup,
-            },
-        });
-
-        page.Content = pageContent;
-
-        _optionPanels.Add((pageContent, bindings));
+        pending.Stack.Children.Add(compositeGroup);
+        _generalCompositesPending = null;
     }
 
     private void BuildTextEditorTabContent(TabItem page)
@@ -768,6 +798,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
             var tabKey = def.Category == SettingCategory.App ? AppSettingsTabKey : GeneralTabKey;
             EnsureTabContent(tabKey);
+            if (tabKey == GeneralTabKey)
+                EnsureGeneralCompositesReady();
             if (!_navByToken.TryGetValue(hit.Token, out entry))
                 return;
         }

@@ -19,6 +19,7 @@ public static class StartupUpdateGate
         CancellationToken cancellationToken = default) =>
         EvaluateCoreAsync(installDirectory, prefs, cancellationToken);
 
+    // Pre-main-window gate: silent auto-install only. Check-for-updates alone must never await network here.
     private static async Task<StartupUpdateGateResult> EvaluateCoreAsync(
         string installDirectory,
         UiPreferences prefs,

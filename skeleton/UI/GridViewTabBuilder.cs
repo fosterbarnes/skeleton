@@ -19,6 +19,8 @@ internal static class GridViewTabBuilder
 
     public static (Control Content, Handle Tab) Build(ObservableCollection<FileListEntry> items)
     {
+        DataGridStyles.EnsureLoaded();
+
         var addButton = MdiButtons.IconOnly(MaterialIconKind.PlusThick, "Add");
         var removeButton = MdiButtons.IconOnly(MaterialIconKind.MinusThick, "Remove");
 

@@ -14,7 +14,6 @@
   </Application.Resources>
   <Application.Styles>
     <FluentTheme DensityStyle="Compact" />
-    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
     <StyleInclude Source="avares://skeleton/Themes/AppTheme.axaml" />
     <mdi:MaterialIconStyles />
   </Application.Styles>

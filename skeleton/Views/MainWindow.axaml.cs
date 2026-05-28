@@ -22,18 +22,24 @@ public partial class MainWindow : Window
     {
         base.OnOpened(e);
         ViewModel.RestoreWindowBounds(this);
-        UiTheme.ApplyWindowTheme(this, ViewModel.SelectedTheme);
+        UiTheme.ApplyWindowThemeVariant(this, ViewModel.SelectedTheme);
         ViewModel.ThemeChanged += theme => UiTheme.ApplyWindowTheme(this, theme);
         ViewModel.FontsChanged += () => TabChromeHelper.ResetAndSyncTabWidths(MainTabs);
-        ViewModel.EnsureSelectedTabContent();
         TabChromeHelper.ApplyUniformTabWidths(MainTabs);
         WireSearch();
+        ScheduleDeferredStartupWork();
+    }
 
+    private void ScheduleDeferredStartupWork()
+    {
         Dispatcher.UIThread.Post(() =>
         {
+            ViewModel.EndDeferTabContentBuild();
+            ViewModel.EnsureSelectedTabContent();
             ViewModel.RegisterPickerButtons();
-            ViewModel.BeginStartupUpdateCheck();
         }, DispatcherPriority.Background);
+
+        Dispatcher.UIThread.Post(ViewModel.BeginStartupUpdateCheck, DispatcherPriority.ApplicationIdle);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

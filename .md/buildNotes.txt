@@ -1,6 +1,3 @@
-v0.2.1
+v0.2.2
 
-- Fix link in about
-- Update app settings screenshot
-- Auto-update installer version when building
-- Add file version and copyright info to all built binaries
+- Improve app startup time
