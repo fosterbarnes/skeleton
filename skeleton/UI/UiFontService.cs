@@ -20,13 +20,13 @@ internal static class UiFontService
     }
 
     public static FontFamily CreateMainFamily(string? name) =>
-        new(UiFontFamilies.NormalizeMain(name));
+        new(UiFontFamilies.ResolveMainStack(UiFontFamilies.NormalizeMain(name)));
 
     public static FontFamily CreateMonoFamily(string? name) =>
         new($"{UiFontFamilies.NormalizeMono(name)}, monospace");
 
     public static FontFamily CreatePreviewFamily(string name, bool mono) =>
-        mono ? new FontFamily($"{name}, monospace") : new FontFamily(name);
+        mono ? new FontFamily($"{name}, monospace") : new FontFamily(UiFontFamilies.ResolveMainStack(name));
 
     public static double GetTabSize(Application? app) =>
         Get(app, UiFontKeys.Tab, UiFontDefaults.Tab);

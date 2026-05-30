@@ -27,7 +27,6 @@ internal static class UiTheme
         public Color? TabHeaderBg { get; init; }
         public Color? TabSelectedBg { get; init; }
         public Color? TabHoverBg { get; init; }
-        public Color? TabSelectedHoverBg { get; init; }
 
         public Color? TabBorder { get; init; }
         public Color? SearchBorder { get; init; }
@@ -184,7 +183,6 @@ internal static class UiTheme
         var tabHeaderBg = Role(p.TabHeaderBg, p.SurfaceBg);
         var tabSelectedBg = Role(p.TabSelectedBg, p.FormBg);
         var tabHoverBg = Role(p.TabHoverBg, p.FieldBg);
-        var tabSelectedHoverBg = Role(p.TabSelectedHoverBg, p.SurfaceBg);
 
         SetBrush(resources, ThemeBrushKeys.MainBorder, p.MainBorder);
         SetBrush(resources, ThemeBrushKeys.MainText, p.MainText);
@@ -201,7 +199,6 @@ internal static class UiTheme
         SetBrush(resources, ThemeBrushKeys.TabHeaderBg, tabHeaderBg);
         SetBrush(resources, ThemeBrushKeys.TabSelectedBg, tabSelectedBg);
         SetBrush(resources, ThemeBrushKeys.TabHoverBg, tabHoverBg);
-        SetBrush(resources, ThemeBrushKeys.TabSelectedHoverBg, tabSelectedHoverBg);
 
         SetBrush(resources, ThemeBrushKeys.TabBorder, Role(p.TabBorder, p.MainBorder));
         SetBrush(resources, ThemeBrushKeys.SearchBorder, Role(p.SearchBorder, p.MainBorder));

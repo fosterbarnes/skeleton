@@ -19,7 +19,6 @@ internal static class ThemeBrushKeys
     public const string TabHeaderBg = "ThemeTabHeaderBgBrush";
     public const string TabSelectedBg = "ThemeTabSelectedBgBrush";
     public const string TabHoverBg = "ThemeTabHoverBgBrush";
-    public const string TabSelectedHoverBg = "ThemeTabSelectedHoverBgBrush";
 
     // Border roles
     public const string TabBorder = "ThemeTabBorderBrush";

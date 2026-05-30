@@ -4,13 +4,13 @@ public readonly record struct FontFamilyOption(string Value, string Label);
 
 public static class UiFontFamilies
 {
-    public const string DefaultMain = "Inter";
+    public const string DefaultMain = "Segoe UI";
+    public const string SegoeUiStack = "Segoe UI, Segoe UI Variable";
     public const string DefaultMono = "Consolas";
 
     public static readonly FontFamilyOption[] MainChoices =
     [
-        new(DefaultMain, "Inter"),
-        new("Segoe UI", "Segoe UI"),
+        new(DefaultMain, "Segoe UI"),
         new("Arial", "Arial"),
         new("Calibri", "Calibri"),
         new("Tahoma", "Tahoma"),
@@ -40,6 +40,11 @@ public static class UiFontFamilies
     public static int IndexOfMain(string? value) => IndexOf(value, MainChoices, DefaultMain);
 
     public static int IndexOfMono(string? value) => IndexOf(value, MonoChoices, DefaultMono);
+
+    public static string ResolveMainStack(string name) =>
+        string.Equals(name, DefaultMain, StringComparison.OrdinalIgnoreCase)
+            ? SegoeUiStack
+            : name;
 
     private static string Normalize(string? value, FontFamilyOption[] choices, string fallback)
     {

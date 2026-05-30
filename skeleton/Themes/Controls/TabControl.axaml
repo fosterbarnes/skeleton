@@ -75,13 +75,8 @@
     <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
   </Style>
 
-  <Style Selector="TabControl.app-tabs TabItem:selected /template/ Border#PART_LayoutRoot">
+  <Style Selector="TabControl.app-tabs TabItem:selected /template/ Border#PART_LayoutRoot, TabControl.app-tabs TabItem:selected:pointerover /template/ Border#PART_LayoutRoot">
     <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
-    <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
-  </Style>
-
-  <Style Selector="TabControl.app-tabs TabItem:selected:pointerover /template/ Border#PART_LayoutRoot">
-    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedHoverBgBrush}" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
   </Style>
 

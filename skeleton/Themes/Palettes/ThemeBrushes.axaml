@@ -17,7 +17,6 @@
   <SolidColorBrush x:Key="ThemeTabHeaderBgBrush" Color="#E8E8E8" />
   <SolidColorBrush x:Key="ThemeTabSelectedBgBrush" Color="#F0F0F0" />
   <SolidColorBrush x:Key="ThemeTabHoverBgBrush" Color="#FFFFFF" />
-  <SolidColorBrush x:Key="ThemeTabSelectedHoverBgBrush" Color="#E8E8E8" />
 
   <!-- Border roles -->
   <SolidColorBrush x:Key="ThemeTabBorderBrush" Color="#ADADAD" />
