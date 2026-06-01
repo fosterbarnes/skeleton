@@ -1,4 +1,5 @@
 using skeleton;
+using skeleton.Platform;
 
 namespace skeleton.Update;
 
@@ -7,8 +8,8 @@ public static class UpdateConstants
     public const string RepoOwner = AppBranding.RepoOwner;
     public const string RepoName = AppBranding.Slug;
     public const string UserAgent = AppBranding.UserAgent;
-    public const string AppExeName = AppBranding.ExeFileName;
-    public const string UpdaterExeName = "updater.exe";
+    public static string AppExeName => PlatformBinaryNames.AppHostFileName;
+    public static string UpdaterExeName => PlatformBinaryNames.UpdaterHostFileName;
     public const string VersionFileName = "Version";
     public const string VersionBuildFileName = "VersionBuild";
     public const string PendingUpdaterRefreshFileName = ".pending-updater-refresh";

@@ -19,9 +19,8 @@ public static class UpdateInstallRunner
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("No published releases were found.");
 
-        var architecture = ArchitectureHelper.GetCurrentArchitecture();
         var zipPath = await ReleaseDownloadService
-            .DownloadPortableZipAsync(release, architecture, progress, cancellationToken)
+            .DownloadPortableZipAsync(release, progress, cancellationToken)
             .ConfigureAwait(false);
 
         var keepZip = false;

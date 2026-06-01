@@ -8,16 +8,69 @@ internal static class TabChromeHelper
 {
     private static readonly Dictionary<(string Text, double FontSize), double> HeaderWidthCache = new();
 
-    public static void ApplyUniformTabWidths(TabControl tabs)
+    public static void ApplyUniformTabWidths(TabControl tabs, ListBox? macTabHeaders = null)
     {
         tabs.Loaded += OnTabsLoaded;
+
+        if (macTabHeaders is not null && OperatingSystem.IsMacOS())
+            macTabHeaders.Loaded += OnMacTabHeadersLoaded;
     }
 
-    public static void ResetAndSyncTabWidths(TabControl tabs)
+    public static void ResetAndSyncTabWidths(TabControl tabs, ListBox? macTabHeaders = null)
     {
         HeaderWidthCache.Clear();
         if (tabs.IsLoaded)
             SyncTabWidths(tabs);
+
+        if (macTabHeaders is not null && OperatingSystem.IsMacOS() && macTabHeaders.IsLoaded)
+            SyncMacTabHeaderWidths(macTabHeaders);
+    }
+
+    public static void SyncMacTabHeaderWidths(ListBox macTabHeaders)
+    {
+        if (macTabHeaders.Items.Count == 0)
+            return;
+
+        for (var i = 0; i < macTabHeaders.Items.Count; i++)
+        {
+            if (macTabHeaders.ContainerFromIndex(i) is not ListBoxItem)
+                return;
+        }
+
+        var maxWidth = 72.0;
+        for (var i = 0; i < macTabHeaders.Items.Count; i++)
+        {
+            if (macTabHeaders.Items[i] is not TabItem tab)
+                continue;
+
+            var header = tab.Header?.ToString() ?? string.Empty;
+            if (string.IsNullOrEmpty(header))
+                continue;
+
+            var width = MeasureHeaderWidth(header) + UiMetrics.TabHorizontalPadding * 2;
+            if (width > maxWidth)
+                maxWidth = width;
+        }
+
+        maxWidth = Math.Min(maxWidth, 140);
+
+        for (var i = 0; i < macTabHeaders.Items.Count; i++)
+        {
+            if (macTabHeaders.ContainerFromIndex(i) is ListBoxItem item)
+            {
+                item.Width = double.NaN;
+                item.MinWidth = maxWidth;
+            }
+        }
+    }
+
+    private static void OnMacTabHeadersLoaded(object? sender, EventArgs e)
+    {
+        if (sender is not ListBox headers)
+            return;
+
+        headers.Loaded -= OnMacTabHeadersLoaded;
+        SyncMacTabHeaderWidths(headers);
     }
 
     private static void OnTabsLoaded(object? sender, EventArgs e)

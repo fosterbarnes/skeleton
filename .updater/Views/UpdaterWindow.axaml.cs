@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 using skeleton.Updater.ViewModels;
 
 namespace skeleton.Updater.Views;
@@ -9,7 +10,7 @@ public partial class UpdaterWindow : Window
 
     public UpdaterWindow()
     {
-        InitializeComponent();
+        AvaloniaXamlLoader.Load(this);
     }
 
     protected override async void OnOpened(EventArgs e)

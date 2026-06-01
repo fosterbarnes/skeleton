@@ -5,8 +5,9 @@ namespace skeleton.UI;
 internal static class UiMetrics
 {
     public const int BaselineDpi = 96;
-    public const int DefaultWidth = 880;
-    public const int DefaultHeight = 680;
+    public static double DefaultWidth => OperatingSystem.IsMacOS() ? 928 : 880;
+    public static double DefaultHeight => OperatingSystem.IsMacOS() ? 725 : 680;
+    public static double MinWidth => DefaultWidth;
     public const int MinHeight = 560;
     public const int TokenColWidth = 268;
     public const double ControlHeight = 26;
@@ -23,6 +24,7 @@ internal static class UiMetrics
     public const double FieldRowStepPx = 38;
     public const double TabHeight = 28;
     public const double TabStripHeight = 30;
+    public const int MacTrafficLightLeadingInset = 78;
     public const int TabHorizontalPadding = 10;
     public const int TabVerticalPadding = 2;
     public const double StatusFooterHeightPx = 36;
@@ -89,6 +91,8 @@ internal static class UiMetrics
 
     public static Thickness TabStripItemsMargin =>
         new(4, 0, TabStripSearchReserve, 0);
+
+    public static Thickness MacChromeSearchMargin => new(0, 0, 8, 0);
 
     public static int TabStripSearchReserve =>
         (int)SearchBoxWidth + 16;

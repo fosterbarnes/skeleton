@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         AppIconLoader.TryApplyWindowIcon(this);
+        MacWindowChrome.TryApplyUnifiedTitleBar(this, MacChromeBar, MacTabHeaders, MainTabs, SearchBox);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
@@ -24,8 +25,9 @@ public partial class MainWindow : Window
         ViewModel.RestoreWindowBounds(this);
         UiTheme.ApplyWindowThemeVariant(this, ViewModel.SelectedTheme);
         ViewModel.ThemeChanged += theme => UiTheme.ApplyWindowTheme(this, theme);
-        ViewModel.FontsChanged += () => TabChromeHelper.ResetAndSyncTabWidths(MainTabs);
-        TabChromeHelper.ApplyUniformTabWidths(MainTabs);
+        ViewModel.FontsChanged += () =>
+            TabChromeHelper.ResetAndSyncTabWidths(MainTabs, MacTabHeaders);
+        TabChromeHelper.ApplyUniformTabWidths(MainTabs, MacTabHeaders);
         WireSearch();
         ScheduleDeferredStartupWork();
     }
@@ -37,6 +39,7 @@ public partial class MainWindow : Window
             ViewModel.EndDeferTabContentBuild();
             ViewModel.EnsureSelectedTabContent();
             ViewModel.RegisterPickerButtons();
+            MacWindowChrome.ScheduleMacTabHeaderWidthSync(MacTabHeaders);
         }, DispatcherPriority.Background);
 
         Dispatcher.UIThread.Post(ViewModel.BeginStartupUpdateCheck, DispatcherPriority.ApplicationIdle);

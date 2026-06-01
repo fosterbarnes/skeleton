@@ -108,4 +108,61 @@
     <Setter Property="Opacity" Value="0" />
   </Style>
 
+  <Style Selector="Window.mac-unified-chrome TabControl.app-tabs /template/ ItemsPresenter#PART_ItemsPresenter">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MaxHeight" Value="0" />
+    <Setter Property="Margin" Value="0" />
+  </Style>
+
+  <Style Selector="Window.mac-unified-chrome TabControl.app-tabs /template/ Border#PART_Border">
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem">
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="FontSize" Value="{DynamicResource ThemeFontTab}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabHeight}" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Padding" Value="{x:Static ui:UiMetrics.TabItemPadding}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,0" />
+    <Setter Property="Margin" Value="0,0,-1,0" />
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,0" />
+    <Setter Property="Margin" Value="0,0,-1,-1" />
+    <Setter Property="ZIndex" Value="1" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected)">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected):pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHoverBgBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected /template/ Border#PART_LayoutRoot, ListBox.mac-tab-headers ListBoxItem:selected:pointerover /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
+  </Style>
+
 </Styles>

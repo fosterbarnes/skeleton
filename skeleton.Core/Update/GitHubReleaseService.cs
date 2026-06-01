@@ -48,12 +48,12 @@ public static class GitHubReleaseService
             var (isOutdated, currentIsNewer) = VersionComparer.GetComparison(current, release.Version);
             if (isOutdated)
             {
-                var architecture = ArchitectureHelper.GetCurrentArchitecture();
-                if (release.FindPortableAsset(architecture) is null)
+                var assetTag = ReleaseAssetNames.GetPortableAssetTag();
+                if (release.FindPortableAsset(assetTag) is null)
                 {
                     return UpdateCheckResult.Failed(
                         current,
-                        $"No update package for this architecture ({architecture}).");
+                        $"No update package for this platform ({assetTag}).");
                 }
             }
 

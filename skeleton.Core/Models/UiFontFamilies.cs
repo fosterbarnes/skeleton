@@ -4,13 +4,21 @@ public readonly record struct FontFamilyOption(string Value, string Label);
 
 public static class UiFontFamilies
 {
-    public const string DefaultMain = "Segoe UI";
+    public const string SegoeUi = "Segoe UI";
     public const string SegoeUiStack = "Segoe UI, Segoe UI Variable";
-    public const string DefaultMono = "Consolas";
+    public const string Consolas = "Consolas";
+    public const string Menlo = "Menlo";
+    public const string MenloStack = "Menlo, SF Mono, Monaco";
+
+    public static string DefaultMain =>
+        OperatingSystem.IsMacOS() ? "Tahoma" : SegoeUi;
+
+    public static string DefaultMono =>
+        OperatingSystem.IsMacOS() ? Menlo : Consolas;
 
     public static readonly FontFamilyOption[] MainChoices =
     [
-        new(DefaultMain, "Segoe UI"),
+        new(SegoeUi, SegoeUi),
         new("Arial", "Arial"),
         new("Calibri", "Calibri"),
         new("Tahoma", "Tahoma"),
@@ -21,7 +29,10 @@ public static class UiFontFamilies
 
     public static readonly FontFamilyOption[] MonoChoices =
     [
-        new(DefaultMono, "Consolas"),
+        new(Consolas, Consolas),
+        new(Menlo, Menlo),
+        new("SF Mono", "SF Mono"),
+        new("Monaco", "Monaco"),
         new("Cascadia Mono", "Cascadia Mono"),
         new("Cascadia Code", "Cascadia Code"),
         new("Courier New", "Courier New"),
@@ -35,15 +46,27 @@ public static class UiFontFamilies
 
     public static string NormalizeMain(string? value) => Normalize(value, MainChoices, DefaultMain);
 
-    public static string NormalizeMono(string? value) => Normalize(value, MonoChoices, DefaultMono);
+    public static string NormalizeMono(string? value)
+    {
+        if (OperatingSystem.IsMacOS()
+            && string.Equals(value, Consolas, StringComparison.OrdinalIgnoreCase))
+            return DefaultMono;
+
+        return Normalize(value, MonoChoices, DefaultMono);
+    }
 
     public static int IndexOfMain(string? value) => IndexOf(value, MainChoices, DefaultMain);
 
     public static int IndexOfMono(string? value) => IndexOf(value, MonoChoices, DefaultMono);
 
     public static string ResolveMainStack(string name) =>
-        string.Equals(name, DefaultMain, StringComparison.OrdinalIgnoreCase)
+        string.Equals(name, SegoeUi, StringComparison.OrdinalIgnoreCase)
             ? SegoeUiStack
+            : name;
+
+    public static string ResolveMonoStack(string name) =>
+        string.Equals(name, Menlo, StringComparison.OrdinalIgnoreCase)
+            ? MenloStack
             : name;
 
     private static string Normalize(string? value, FontFamilyOption[] choices, string fallback)

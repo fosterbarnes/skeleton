@@ -114,6 +114,14 @@
 
 
 
+  <Style Selector="Window.mac-unified-chrome WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock">
+
+    <Setter Property="IsVisible" Value="False" />
+
+  </Style>
+
+
+
   <StyleInclude Source="avares://skeleton/Themes/Controls/Button.axaml" />
 
   <StyleInclude Source="avares://skeleton/Themes/Controls/MaterialIcon.axaml" />

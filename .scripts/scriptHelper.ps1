@@ -34,10 +34,6 @@ $buildTargets = @(
     @{ Architecture = 'arm64'; RuntimeIdentifier = 'win-arm64'; BinFolder = "$publishFolder\arm64"; ExePath = "$publishFolder\arm64\$projectName.exe"; InstallerName = "$projectName-arm64-installer.exe"; InstallerScript = "$installerFolder\$projectName.arm64.installer.iss" }
 )
 
-# Future cross-platform publish targets (requires build on matching OS or CI):
-# @{ Architecture = 'arm64'; RuntimeIdentifier = 'osx-arm64'; BinFolder = "$publishFolder\osx-arm64"; ExePath = "$publishFolder\osx-arm64\$projectName"; ... }
-# @{ Architecture = 'x64';   RuntimeIdentifier = 'linux-x64'; BinFolder = "$publishFolder\linux-x64"; ExePath = "$publishFolder\linux-x64\$projectName"; ... }
-
 function Set-VersionBuildPlatform {
     param(
         [Parameter(Mandatory)][string]$Platform,

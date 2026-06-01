@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using skeleton.Platform;
 using skeleton.Storage;
 
 namespace skeleton.Update;
@@ -7,13 +8,13 @@ public static class ReleaseDownloadService
 {
     public static async Task<string> DownloadPortableZipAsync(
         GitHubRelease release,
-        string architecture,
         IProgress<(float Progress, string Status)>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var asset = release.FindPortableAsset(architecture)
+        var assetTag = ReleaseAssetNames.GetPortableAssetTag();
+        var asset = release.FindPortableAsset(assetTag)
             ?? throw new InvalidOperationException(
-                $"Release asset not found: {ReleaseAssetNames.PortableZip(release.Version, architecture)}");
+                $"Release asset not found: {ReleaseAssetNames.PortableZip(release.Version, assetTag)}");
 
         var tempPath = Path.Combine(Path.GetTempPath(), $"{Path.GetRandomFileName()}-{asset.Name}");
 
@@ -36,10 +37,9 @@ public static class ReleaseDownloadService
     public static async Task RefreshUpdaterExecutableAsync(
         string installDirectory,
         GitHubRelease release,
-        string architecture,
         CancellationToken cancellationToken = default)
     {
-        var zipPath = await DownloadPortableZipAsync(release, architecture, cancellationToken: cancellationToken)
+        var zipPath = await DownloadPortableZipAsync(release, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         try
         {
@@ -55,7 +55,7 @@ public static class ReleaseDownloadService
     {
         using var archive = ZipFile.OpenRead(zipPath);
         var entry = archive.Entries.FirstOrDefault(e =>
-            string.Equals(e.Name, UpdateConstants.UpdaterExeName, StringComparison.OrdinalIgnoreCase));
+            PlatformBinaryNames.IsUpdaterHostFileName(e.Name));
         if (entry is null)
             throw new InvalidOperationException($"{UpdateConstants.UpdaterExeName} was not found in the release archive.");
 
@@ -65,6 +65,7 @@ public static class ReleaseDownloadService
             entry.ExtractToFile(tempUpdater, overwrite: true);
             var destination = Path.Combine(installDirectory, UpdateConstants.UpdaterExeName);
             File.Copy(tempUpdater, destination, overwrite: true);
+            ApplyUpdateService.EnsureExecutable(destination);
         }
         finally
         {

@@ -3,15 +3,16 @@
         xmlns:vm="using:skeleton.ViewModels"
         xmlns:ui="using:skeleton.UI"
         xmlns:skeleton="using:skeleton"
+        xmlns:controls="using:Avalonia.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         x:Class="skeleton.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{x:Static skeleton:AppBranding.DisplayName}"
-        Width="880"
-        Height="680"
-        MinWidth="880"
+        Width="{x:Static ui:UiMetrics.DefaultWidth}"
+        Height="{x:Static ui:UiMetrics.DefaultHeight}"
+        MinWidth="{x:Static ui:UiMetrics.MinWidth}"
         MinHeight="560">
 
   <DockPanel>
@@ -39,35 +40,73 @@
       </Grid>
     </Border>
 
-    <Grid Margin="{x:Static ui:UiMetrics.TabFrameMargin}">
-      <TabControl x:Name="MainTabs"
-                  Classes="app-tabs"
-                  ItemsSource="{Binding TabItems}"
-                  SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}" />
+    <Grid x:Name="TabHost" Margin="{x:Static ui:UiMetrics.TabFrameMargin}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
 
-      <TextBox x:Name="SearchBox"
-               Classes="app-search"
-               VerticalAlignment="Top"
-               HorizontalAlignment="Right"
-               Margin="{x:Static ui:UiMetrics.SearchBoxMargin}"
-               PlaceholderText="Search"
-               Text="{Binding SearchQuery, Mode=TwoWay}"
-               IsVisible="{Binding SearchEnabled}" />
+      <Grid x:Name="MacChromeBar"
+            Grid.Row="0"
+            IsVisible="False"
+            Height="{x:Static ui:UiMetrics.TabStripHeight}"
+            Background="{DynamicResource ThemeTabStripBgBrush}"
+            ColumnDefinitions="78,*,Auto">
+        <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
+          <ListBox x:Name="MacTabHeaders"
+                   Grid.Column="0"
+                   Classes="mac-tab-headers"
+                   ItemsSource="{Binding TabItems}"
+                   SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                   HorizontalAlignment="Left"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="controls:TabItem">
+                <TextBlock Text="{Binding Header}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Grid>
 
-      <Popup x:Name="SearchPopup"
-             IsLightDismissEnabled="True"
-             PlacementTarget="{Binding #SearchBox}"
-             Placement="Bottom">
-        <ListBox x:Name="SearchResults"
-                 MaxHeight="{x:Static ui:UiMetrics.SearchDropMaxHeight}"
-                 MinWidth="{x:Static ui:UiMetrics.SearchBoxWidth}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="skeleton:SettingSearchHit">
-              <TextBlock Text="{Binding DisplayText}" />
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </Popup>
+      <Grid Grid.Row="1">
+        <TabControl x:Name="MainTabs"
+                    Classes="app-tabs"
+                    ItemsSource="{Binding TabItems}"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}" />
+
+        <TextBox x:Name="SearchBox"
+                 Classes="app-search"
+                 VerticalAlignment="Top"
+                 HorizontalAlignment="Right"
+                 Margin="{x:Static ui:UiMetrics.SearchBoxMargin}"
+                 PlaceholderText="Search"
+                 Text="{Binding SearchQuery, Mode=TwoWay}"
+                 IsVisible="{Binding SearchEnabled}" />
+
+        <Popup x:Name="SearchPopup"
+               IsLightDismissEnabled="True"
+               PlacementTarget="{Binding #SearchBox}"
+               Placement="Bottom">
+          <ListBox x:Name="SearchResults"
+                   MaxHeight="{x:Static ui:UiMetrics.SearchDropMaxHeight}"
+                   MinWidth="{x:Static ui:UiMetrics.SearchBoxWidth}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="skeleton:SettingSearchHit">
+                <TextBlock Text="{Binding DisplayText}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Popup>
+      </Grid>
     </Grid>
   </DockPanel>
 </Window>

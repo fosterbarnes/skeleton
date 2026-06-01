@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType Condition="$(_IsWinRid)">WinExe</OutputType>
+    <OutputType Condition="!$(_IsWinRid)">Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>skeleton</RootNamespace>
     <AssemblyName>skeleton</AssemblyName>
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>../.resources/icon/skeleton.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <ApplicationManifest Condition="$(_IsWinRid)">app.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="$(_IsWinRid)">../.resources/icon/skeleton.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <VersionContents>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\.version\version').Trim())</VersionContents>
     <Version>$(VersionContents)</Version>
@@ -52,25 +53,36 @@
   <Target Name="PublishUpdaterToOutput" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND Exists('$(UpdaterProjectPath)')">
     <PropertyGroup>
       <_UpdaterRid Condition="'$(Platform)' == 'x86'">win-x86</_UpdaterRid>
-      <_UpdaterRid Condition="'$(Platform)' == 'x64'">win-x64</_UpdaterRid>
-      <_UpdaterRid Condition="'$(Platform)' == 'ARM64'">win-arm64</_UpdaterRid>
+      <_UpdaterRid Condition="'$(Platform)' == 'x64' and $([MSBuild]::IsOSPlatform('Windows'))">win-x64</_UpdaterRid>
+      <_UpdaterRid Condition="'$(Platform)' == 'x64' and $([MSBuild]::IsOSPlatform('OSX'))">osx-x64</_UpdaterRid>
+      <_UpdaterRid Condition="'$(Platform)' == 'ARM64' and $([MSBuild]::IsOSPlatform('Windows'))">win-arm64</_UpdaterRid>
+      <_UpdaterRid Condition="'$(Platform)' == 'ARM64' and $([MSBuild]::IsOSPlatform('OSX'))">osx-arm64</_UpdaterRid>
       <_UpdaterRid Condition="'$(_UpdaterRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</_UpdaterRid>
       <_UpdaterStagingDir>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'updater-publish'))</_UpdaterStagingDir>
+      <_UpdaterPublishedHost>$([System.IO.Path]::Combine('$(_UpdaterStagingDir)', 'updater'))</_UpdaterPublishedHost>
+      <_UpdaterOutputHost>$([System.IO.Path]::Combine('$(OutputPath)', 'updater'))</_UpdaterOutputHost>
     </PropertyGroup>
     <RemoveDir Directories="$(_UpdaterStagingDir)" Condition="Exists('$(_UpdaterStagingDir)')" />
     <MSBuild
       Projects="$(UpdaterProjectPath)"
+      Targets="Restore"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(_UpdaterRid)" />
+    <MSBuild
+      Projects="$(UpdaterProjectPath)"
       Targets="Publish"
-      Properties="Configuration=$(Configuration);RuntimeIdentifier=$(_UpdaterRid);AppendRuntimeIdentifierToOutputPath=false;PublishDir=$(_UpdaterStagingDir);SelfContained=false" />
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(_UpdaterRid);AppendRuntimeIdentifierToOutputPath=false;PublishDir=$(_UpdaterStagingDir);SelfContained=false" />
     <Copy
       SourceFiles="$(_UpdaterStagingDir)\updater.exe"
       DestinationFolder="$(OutputPath)"
       SkipUnchangedFiles="true"
       Condition="Exists('$(_UpdaterStagingDir)\updater.exe')" />
     <Copy
-      SourceFiles="$(_UpdaterStagingDir)\updater"
+      SourceFiles="$(_UpdaterPublishedHost)"
       DestinationFolder="$(OutputPath)"
       SkipUnchangedFiles="true"
-      Condition="Exists('$(_UpdaterStagingDir)\updater')" />
+      Condition="Exists('$(_UpdaterPublishedHost)')" />
+    <Exec
+      Condition="$([MSBuild]::IsOSPlatform('OSX')) and Exists('$(_UpdaterOutputHost)')"
+      Command="chmod +x &quot;$(_UpdaterOutputHost)&quot;" />
   </Target>
 </Project>

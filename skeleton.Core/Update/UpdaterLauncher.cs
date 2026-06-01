@@ -18,7 +18,7 @@ public static class UpdaterLauncher
             PlatformServices.Current.ShowWarning(
                 AppBranding.DisplayName,
                 $"{UpdateConstants.UpdaterExeName} was not found in:\n{installDirectory}\n\n"
-                + "Build the updater first (.scripts\\buildUpdater.ps1 or .buildAll.ps1).");
+                + "Build the updater first (.scripts/buildUpdater.ps1 or .buildAll.ps1).");
             return;
         }
 
@@ -45,7 +45,7 @@ public static class UpdaterLauncher
 
         var updaterPath = ResolveUpdaterPath(installDirectory)
             ?? throw new FileNotFoundException(
-                $"{UpdateConstants.UpdaterExeName} was not found. Build the updater first (.scripts\\buildUpdater.ps1 or .buildAll.ps1).",
+                $"{UpdateConstants.UpdaterExeName} was not found. Build the updater first (.scripts/buildUpdater.ps1 or .buildAll.ps1).",
                 installDirectory);
 
         StartUpdater(updaterPath, installDirectory, installMode: true, silent);
@@ -68,7 +68,6 @@ public static class UpdaterLauncher
             await ReleaseDownloadService.RefreshUpdaterExecutableAsync(
                     installDirectory,
                     check.Release,
-                    ArchitectureHelper.GetCurrentArchitecture(),
                     cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -103,7 +102,7 @@ public static class UpdaterLauncher
             var publishRoot = Path.Combine(dir.FullName, "publish");
             if (Directory.Exists(publishRoot))
             {
-                foreach (var platform in new[] { arch, "x64", "arm64", "x86" })
+                foreach (var platform in GetPublishFolderNames(arch))
                 {
                     var candidate = Path.Combine(publishRoot, platform, UpdateConstants.UpdaterExeName);
                     if (seen.Add(candidate))
@@ -116,6 +115,22 @@ public static class UpdaterLauncher
 
             dir = dir.Parent;
         }
+    }
+
+    private static IEnumerable<string> GetPublishFolderNames(string arch)
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            yield return $"osx-{arch}";
+            yield return "osx-arm64";
+            yield return "osx-x64";
+            yield break;
+        }
+
+        yield return arch;
+        yield return "x64";
+        yield return "arm64";
+        yield return "x86";
     }
 
     private static void StartUpdater(string updaterPath, string installDirectory, bool installMode, bool silent = false)

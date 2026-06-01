@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType Condition="$(_IsWinRid)">WinExe</OutputType>
+    <OutputType Condition="!$(_IsWinRid)">Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>skeleton.Updater</RootNamespace>
     <AssemblyName>updater</AssemblyName>
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>../.resources/icon/skeleton.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <ApplicationManifest Condition="$(_IsWinRid)">app.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="$(_IsWinRid)">../.resources/icon/skeleton.ico</ApplicationIcon>
     <Product>skeleton Updater</Product>
     <Description>skeleton Updater</Description>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <VersionContents>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\.version\version').Trim())</VersionContents>
+    <VersionContents>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)../.version/version').Trim())</VersionContents>
     <Version>$(VersionContents)</Version>
     <AssemblyVersion>$(VersionContents).0</AssemblyVersion>
     <FileVersion>$(VersionContents).0</FileVersion>
@@ -24,9 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Themes\**" />
-    <AvaloniaResource Include="..\skeleton\Themes\Controls\**\*" Link="Themes\Controls\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\skeleton\Themes\Controls\DataGrid.axaml;..\skeleton\Themes\Controls\MaterialIcon.axaml" />
-    <AvaloniaResource Include="..\skeleton\Themes\Palettes\**\*" Link="Themes\Palettes\%(RecursiveDir)%(Filename)%(Extension)" />
+    <AvaloniaXaml Remove="Themes/**" />
+    <AvaloniaResource Include="Themes/**" />
+    <AvaloniaResource Include="../skeleton/Themes/Controls/**/*" Link="Themes/Controls/%(RecursiveDir)%(Filename)%(Extension)" Exclude="../skeleton/Themes/Controls/DataGrid.axaml;../skeleton/Themes/Controls/MaterialIcon.axaml" />
+    <AvaloniaResource Include="../skeleton/Themes/Palettes/**/*" Link="Themes/Palettes/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\skeleton\UI\UiTheme.cs" Link="Shared\UiTheme.cs" />
     <Compile Include="..\skeleton\UI\UiMetrics.cs" Link="Shared\UiMetrics.cs" />
     <Compile Include="..\skeleton\UI\ThemeBrushKeys.cs" Link="Shared\ThemeBrushKeys.cs" />

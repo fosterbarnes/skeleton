@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using skeleton;
+using skeleton.Platform;
 using skeleton.Storage;
 
 namespace skeleton.Update;
@@ -32,12 +33,10 @@ public static class ApplyUpdateService
                 cancellationToken.ThrowIfCancellationRequested();
                 var sourcePath = files[i];
                 var relativePath = Path.GetRelativePath(extractRoot, sourcePath);
-                if (string.Equals(
-                        Path.GetFileName(relativePath),
-                        UpdateConstants.UpdaterExeName,
-                        StringComparison.OrdinalIgnoreCase))
+                if (PlatformBinaryNames.IsUpdaterHostFileName(Path.GetFileName(relativePath)))
                     continue;
 
+                relativePath = RemapInstallRelativePath(relativePath);
                 var destinationPath = Path.GetFullPath(Path.Combine(installRoot, relativePath));
                 if (!IsContainedIn(destinationPath, installRoot))
                     throw new InvalidOperationException(
@@ -46,6 +45,7 @@ public static class ApplyUpdateService
                 Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
                 BackupIfExists(destinationPath, backups);
                 File.Copy(sourcePath, destinationPath, overwrite: true);
+                EnsureExecutable(destinationPath);
 
                 var fraction = 0.1f + (0.85f * ((i + 1) / (float)files.Length));
                 progress?.Report((fraction, $"Installing {relativePath}..."));
@@ -63,6 +63,25 @@ public static class ApplyUpdateService
         {
             FileDeleteHelper.TryDeleteDirectory(extractRoot);
         }
+    }
+
+    private static string RemapInstallRelativePath(string relativePath)
+    {
+        if (!OperatingSystem.IsMacOS())
+            return relativePath;
+
+        var normalized = relativePath.Replace('\\', '/');
+        const string macOsMarker = "/Contents/MacOS/";
+        var markerIndex = normalized.IndexOf(macOsMarker, StringComparison.OrdinalIgnoreCase);
+        if (markerIndex < 0)
+            return relativePath;
+
+        var appPath = normalized[..markerIndex];
+        if (!appPath.EndsWith(".app", StringComparison.OrdinalIgnoreCase))
+            return relativePath;
+
+        var remapped = normalized[(markerIndex + macOsMarker.Length)..];
+        return remapped.Replace('/', Path.DirectorySeparatorChar);
     }
 
     private static bool IsContainedIn(string fullPath, string rootFullPath)
@@ -117,5 +136,19 @@ public static class ApplyUpdateService
             }
         }
         backups.Clear();
+    }
+
+    internal static void EnsureExecutable(string filePath)
+    {
+        if (OperatingSystem.IsWindows())
+            return;
+
+        var name = Path.GetFileName(filePath);
+        if (!PlatformBinaryNames.IsAppHostFileName(name) && !PlatformBinaryNames.IsUpdaterHostFileName(name))
+            return;
+
+        var mode = File.GetUnixFileMode(filePath);
+        mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+        File.SetUnixFileMode(filePath, mode);
     }
 }

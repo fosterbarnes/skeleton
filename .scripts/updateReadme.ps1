@@ -22,9 +22,15 @@ foreach ($target in $buildTargets) {
 
 $quickReferenceBlock = "<!-- Quick Reference --`n$($quickReferenceLines -join ("`n`n"))`n-->"
 $readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --.*?-->', $quickReferenceBlock)
-foreach ($svgFile in $downloadLinks.Keys) {
-    $downloadUrl = $downloadLinks[$svgFile]
-    $readmeUpdated = $readmeUpdated -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$svgFile`")", "`${1}$downloadUrl`${2}"
+if ($readmeUpdated -match '(?s)(?<section>### Windows\b.*?(?=### macOS|## Tabs))') {
+    $sectionText = $Matches['section']
+    $updatedSection = $sectionText
+    foreach ($svgFile in $downloadLinks.Keys) {
+        $downloadUrl = $downloadLinks[$svgFile]
+        $escapedSvg = [regex]::Escape($svgFile)
+        $updatedSection = $updatedSection -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$escapedSvg`")", "`${1}$downloadUrl`${2}"
+    }
+    $readmeUpdated = $readmeUpdated.Replace($sectionText, $updatedSection)
 }
 
 if ($readmeUpdated -eq $readmeContents) {

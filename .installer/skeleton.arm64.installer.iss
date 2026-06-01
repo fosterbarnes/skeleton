@@ -1,7 +1,7 @@
 #define AppName "skeleton"
 #define AppDisplayName "skeleton (ARM64)"
 #ifndef AppVersion
-#define AppVersion "0.2.3"
+#define AppVersion "0.3.0"
 #endif
 #ifndef AppPublisher
 #define AppPublisher "fosterbarnes"

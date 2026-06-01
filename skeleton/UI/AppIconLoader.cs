@@ -7,7 +7,7 @@ internal static class AppIconLoader
 {
     public static void TryApplyWindowIcon(Window window)
     {
-        foreach (var path in ResolveIcoPaths())
+        foreach (var path in ResolveWindowIconPaths())
         {
             if (!File.Exists(path))
                 continue;
@@ -27,6 +27,20 @@ internal static class AppIconLoader
             image.Source = new Bitmap(path);
             return;
         }
+    }
+
+    private static IEnumerable<string> ResolveWindowIconPaths()
+    {
+        var dir = AppContext.BaseDirectory;
+        if (OperatingSystem.IsMacOS())
+        {
+            yield return Path.Combine(dir, "..", "Resources", $"{AppBranding.Slug}.icns");
+            yield return Path.Combine(dir, AppBranding.IconAssetsFolder, $"{AppBranding.Slug}.icns");
+            yield return Path.Combine(dir, $"{AppBranding.Slug}.icns");
+        }
+
+        foreach (var path in ResolveIcoPaths())
+            yield return path;
     }
 
     private static IEnumerable<string> ResolveIcoPaths()

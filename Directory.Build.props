@@ -13,4 +13,9 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <_IsWinRid Condition="'$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win'))</_IsWinRid>
+    <_IsWinRid Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOSPlatform('Windows'))</_IsWinRid>
+  </PropertyGroup>
 </Project>
