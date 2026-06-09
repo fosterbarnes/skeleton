@@ -24,7 +24,7 @@ internal static class UiMetrics
     public const double FieldRowStepPx = 38;
     public const double TabHeight = 28;
     public const double TabStripHeight = 30;
-    public const int MacTrafficLightLeadingInset = 78;
+    public const int MacTrafficLightLeadingInset = 58;
     public const int TabHorizontalPadding = 10;
     public const int TabVerticalPadding = 2;
     public const double StatusFooterHeightPx = 36;

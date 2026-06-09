@@ -1,6 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:skeleton="using:skeleton"
              x:Class="skeleton.Updater.App"
+             Name="{x:Static skeleton:AppBranding.UpdaterTitle}"
              RequestedThemeVariant="Default">
   <Application.Resources>
     <ResourceDictionary>

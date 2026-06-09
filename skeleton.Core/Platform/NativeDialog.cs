@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace skeleton.Platform;
 
+// Pre-main-window errors: Win32 MessageBoxW on Windows, osascript alert on macOS.
+// Linux is planned but not implemented — ShowError is a no-op there today.
 public static class NativeDialog
 {
     public static void ShowError(string title, string message)

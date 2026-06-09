@@ -12,8 +12,14 @@ internal static class AppIconLoader
             if (!File.Exists(path))
                 continue;
 
-            window.Icon = new WindowIcon(path);
-            return;
+            try
+            {
+                window.Icon = new WindowIcon(path);
+                return;
+            }
+            catch
+            {
+            }
         }
     }
 
@@ -24,23 +30,27 @@ internal static class AppIconLoader
             if (!File.Exists(path))
                 continue;
 
-            image.Source = new Bitmap(path);
-            return;
+            try
+            {
+                image.Source = new Bitmap(path);
+                return;
+            }
+            catch
+            {
+            }
         }
     }
 
     private static IEnumerable<string> ResolveWindowIconPaths()
     {
-        var dir = AppContext.BaseDirectory;
-        if (OperatingSystem.IsMacOS())
-        {
-            yield return Path.Combine(dir, "..", "Resources", $"{AppBranding.Slug}.icns");
-            yield return Path.Combine(dir, AppBranding.IconAssetsFolder, $"{AppBranding.Slug}.icns");
-            yield return Path.Combine(dir, $"{AppBranding.Slug}.icns");
-        }
-
         foreach (var path in ResolveIcoPaths())
             yield return path;
+
+        if (OperatingSystem.IsMacOS())
+        {
+            foreach (var path in ResolvePngPaths())
+                yield return path;
+        }
     }
 
     private static IEnumerable<string> ResolveIcoPaths()

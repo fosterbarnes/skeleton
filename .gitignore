@@ -4,5 +4,7 @@ obj/
 publish/
 .vs/
 .installer/Output/
-.md/buildNotes.md
 desktop.ini
+.md/buildNotes.md
+.md/.buildNotes.md
+._*

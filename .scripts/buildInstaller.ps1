@@ -1,12 +1,44 @@
 param([string]$Architecture)
 
-. "$PSScriptRoot\scriptHelper.ps1"; Set-Location $repoRoot
-Sync-InstallerDefines
+#requires -Version 7.0
+$ErrorActionPreference = 'Stop'
+
+. (Join-Path $PSScriptRoot 'scriptHelper.ps1')
+Set-Location -LiteralPath $repoRoot
+
 $buildTargets = Select-BuildTargets $Architecture
-$appIconIss = "..\.resources\icon\$projectName.ico"
+
+if ($IsMacOS) {
+    $identity = $env:SKELETON_MAC_SIGN_IDENTITY
+
+    foreach ($target in $buildTargets) {
+        $appBundle = $target.AppBundlePath
+        if (-not (Test-Path -LiteralPath $appBundle)) {
+            throw "Missing app bundle (run build.ps1 first): $appBundle"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($identity)) {
+            Write-Host "Skipping codesign for $($target.Architecture) (SKELETON_MAC_SIGN_IDENTITY not set): $appBundle"
+            continue
+        }
+
+        Write-Host "Codesigning $($target.Architecture) app bundle: $appBundle"
+        & codesign --force --deep --sign $identity --options runtime $appBundle
+        if ($LASTEXITCODE) { throw "codesign failed for $appBundle (exit $LASTEXITCODE)" }
+
+        & codesign --verify --deep --strict $appBundle
+        if ($LASTEXITCODE) { throw "codesign verify failed for $appBundle (exit $LASTEXITCODE)" }
+    }
+
+    Write-Host "Done."
+    return
+}
+
+Sync-InstallerDefines
+$appIconIss = Get-IssPath '..' '.resources' 'icon' "$projectName.ico"
 if ($Architecture) {
     foreach ($target in $buildTargets) {
-        $builtInstaller = "$installerOutput\$($target.InstallerName)"
+        $builtInstaller = Join-Path $installerOutput $target.InstallerName
         if (Test-Path -LiteralPath $builtInstaller) { Remove-Item -LiteralPath $builtInstaller -Force }
     }
 }
@@ -21,11 +53,12 @@ $isccArgs = @("/DAppVersion=$versionContents", "/DAppPublisher=$appPublisher", "
 foreach ($target in $buildTargets) {
     $iss = Get-Content -LiteralPath $target.InstallerScript -Raw
     foreach ($name in $issDefines.Keys) {
-        $line = "#define $name `"$($issDefines[$name])`""
-        if ($iss -notmatch [regex]::Escape($line)) { throw "$($target.InstallerScript): $name must match scriptHelper ('$($issDefines[$name])')" }
+        if (-not (Test-IssDefine -Content $iss -Name $name -ExpectedValue $issDefines[$name])) {
+            throw "$($target.InstallerScript): $name must match scriptHelper ('$($issDefines[$name])')"
+        }
     }
     if (-not (Test-Path -LiteralPath $target.ExePath)) { throw "Missing publish output (run build.ps1 first): $($target.ExePath)" }
-    $updaterExe = "$($target.BinFolder)\updater.exe"
+    $updaterExe = Join-Path $target.BinFolder 'updater.exe'
     if (-not (Test-Path -LiteralPath $updaterExe)) { throw "Missing updater.exe (run build.ps1 first): $updaterExe" }
     Write-Host "Building $($target.Architecture) installer (AppVersion=$versionContents)"
     & $ISCC @isccArgs $target.InstallerScript

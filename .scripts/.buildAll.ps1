@@ -1,13 +1,26 @@
 param([Alias('h')][switch]$Help, [Parameter(ValueFromRemainingArguments = $true)][string[]]$BuildArgs)
 
-$buildAllHelp = @"
-.buildAll.ps1 [-arm64 | -arm | -x64 | -x86 | -arm -64 | -64 | -86]
-Build app, updater, and installer. Omit flags to build all architectures.
+#requires -Version 7.0
+$ErrorActionPreference = 'Stop'
+
+$buildAllHelp = if ($IsMacOS) {
+@"
+.buildAll.ps1 [-arm64 | -arm | -x64 | -arm -64 | -64]
+Publish main app, updater, app bundle, and portable zip for macOS (osx-arm64, osx-x64) under publish/. Optional codesign via buildInstaller.ps1.
 "@
+}
+else {
+@"
+.buildAll.ps1 [-arm64 | -arm | -x64 | -x86 | -arm -64 | -64 | -86]
+Build app, updater, installer, and portable zip under publish/. Omit flags to build all architectures.
+"@
+}
 
 if ($Help) { Write-Host $buildAllHelp; exit }
 
-. "$PSScriptRoot\scriptHelper.ps1"; Set-Location $repoRoot
+. (Join-Path $PSScriptRoot 'scriptHelper.ps1')
+Set-Location -LiteralPath $repoRoot
+
 $architecture = Resolve-BuildArchitecture (@($BuildArgs) + @($args))
 $archParams = @{}
 if ($architecture) { $archParams['Architecture'] = $architecture }
@@ -19,7 +32,11 @@ $steps = @(
 )
 
 foreach ($step in $steps) {
-    $stepScript = "$PSScriptRoot\$($step.Script)"
+    $stepScript = Join-Path $PSScriptRoot $step.Script
     if ($step.UseArch) { & $stepScript @archParams } else { & $stepScript }
     if ($LASTEXITCODE -ne 0) { throw "$($step.Name) failed (exit $LASTEXITCODE)." }
+
+    if ($step.Name -eq 'buildInstaller') {
+        Copy-ReleaseArtifactsToPublish @archParams
+    }
 }

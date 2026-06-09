@@ -59,7 +59,7 @@ public partial class App : Application
             UpdaterLogger.Write($"Fatal error: {ex}");
             if (DebugLog.Enabled)
                 DebugLog.Write("Startup", $"Fatal error: {ex}");
-            PlatformServices.Current.ShowError(AppBranding.DisplayName, $"An unexpected error occurred:\n\n{ex.Message}");
+            NativeDialog.ShowError(AppBranding.DisplayName, $"An unexpected error occurred:\n\n{ex.Message}");
             desktop.Shutdown(1);
         }
     }

@@ -157,11 +157,15 @@
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
   </Style>
 
-  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected):pointerover /template/ Border#PART_LayoutRoot">
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected) /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected):pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ThemeTabHoverBgBrush}" />
   </Style>
 
-  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected /template/ Border#PART_LayoutRoot, ListBox.mac-tab-headers ListBoxItem:selected:pointerover /template/ Border#PART_LayoutRoot">
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.mac-tab-headers ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
   </Style>
 

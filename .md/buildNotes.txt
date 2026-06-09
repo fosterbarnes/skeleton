@@ -1,3 +1,8 @@
-v0.3.0
+v0.3.1
 
-- Add macOS support
+- Combine macOS & Windows scripts
+- Adjust spacing for macOS UI
+- Fix macOS tab color
+- Fix issue with .draftRelease.ps1
+- Refactor scripts to support multiple platforms
+- Add copyToOS.ps1. Copys project files to and from macOS/Windows while testing & developing

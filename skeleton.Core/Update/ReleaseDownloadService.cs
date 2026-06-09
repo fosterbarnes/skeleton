@@ -54,8 +54,7 @@ public static class ReleaseDownloadService
     public static void ExtractUpdaterFromZip(string zipPath, string installDirectory)
     {
         using var archive = ZipFile.OpenRead(zipPath);
-        var entry = archive.Entries.FirstOrDefault(e =>
-            PlatformBinaryNames.IsUpdaterHostFileName(e.Name));
+        var entry = archive.Entries.FirstOrDefault(IsUpdaterHostZipEntry);
         if (entry is null)
             throw new InvalidOperationException($"{UpdateConstants.UpdaterExeName} was not found in the release archive.");
 
@@ -71,6 +70,15 @@ public static class ReleaseDownloadService
         {
             FileDeleteHelper.TryDeleteFile(tempUpdater);
         }
+    }
+
+    private static bool IsUpdaterHostZipEntry(ZipArchiveEntry entry)
+    {
+        var path = (entry.FullName ?? entry.Name ?? string.Empty).Replace('\\', '/').TrimEnd('/');
+        if (path.Length == 0 || path.EndsWith('/'))
+            return false;
+
+        return PlatformBinaryNames.IsUpdaterHostFileName(Path.GetFileName(path));
     }
 
     private static void ValidateZip(string zipPath, string assetName)
