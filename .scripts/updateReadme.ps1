@@ -16,70 +16,36 @@ foreach ($target in $winReleaseTargets) {
     $quickReference["${label}Installer"] = "$releaseBase/$(Get-WinReleaseAssetName -Kind Installer -Architecture $arch)"
     $quickReference["${label}Portable"] = "$releaseBase/$(Get-WinReleaseAssetName -Kind Portable -Architecture $arch)"
 }
-
 $quickReference['osxX64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetName -AssetTag 'macOS-intel')"
 $quickReference['osxArm64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetName -AssetTag 'macOS-arm')"
 
-$winSvgLinks = @{
-    'download_x64.svg'           = $quickReference['x64Installer']
-    'download_x86.svg'           = $quickReference['x86Installer']
-    'download_arm.svg'           = $quickReference['ARM64Installer']
-    'download_portable_x64.svg'  = $quickReference['x64Portable']
-    'download_portable_x86.svg'  = $quickReference['x86Portable']
-    'download_portable_arm64.svg' = $quickReference['ARM64Portable']
-}
+$refLines = ($quickReference.GetEnumerator() | ForEach-Object { "$($_.Key) = $($_.Value)" }) -join "`n`n"
+$readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --.*?-->', "<!-- Quick Reference --`n$refLines`n-->")
 
-$macSvgLinks = @{
-    'download_portable_x64.svg'  = $quickReference['osxX64Portable']
-    'download_portable_arm64.svg' = $quickReference['osxArm64Portable']
-}
-
-$preferredOrder = @(
-    'version',
-    'x64Installer', 'x64Portable',
-    'x86Installer', 'x86Portable',
-    'ARM64Installer', 'ARM64Portable',
-    'osxX64Portable', 'osxArm64Portable'
+$svgSections = @(
+    @{
+        Pattern = '(?s)(?<section>### Windows\b.*?(?=### macOS|## Tabs))'
+        Links = @{
+            'download_x64.svg' = 'x64Installer'; 'download_x86.svg' = 'x86Installer'; 'download_arm.svg' = 'ARM64Installer'
+            'download_portable_x64.svg' = 'x64Portable'; 'download_portable_x86.svg' = 'x86Portable'; 'download_portable_arm64.svg' = 'ARM64Portable'
+        }
+    }
+    @{
+        Pattern = '(?s)(?<section>### macOS\b.*?(?=## Tabs))'
+        Links = @{ 'download_portable_x64.svg' = 'osxX64Portable'; 'download_portable_arm64.svg' = 'osxArm64Portable' }
+    }
 )
 
-$orderedLines = [System.Collections.Generic.List[string]]::new()
-$remaining = [ordered]@{}
-foreach ($entry in $quickReference.GetEnumerator()) { $remaining[$entry.Key] = $entry.Value }
-foreach ($key in $preferredOrder) {
-    if ($remaining.Contains($key)) {
-        $orderedLines.Add("$key = $($remaining[$key])")
-        $null = $remaining.Remove($key)
+foreach ($section in $svgSections) {
+    if ($readmeUpdated -notmatch $section.Pattern) { continue }
+    $text = $Matches['section']
+    $updated = $text
+    foreach ($svg in $section.Links.Keys) {
+        $url = $quickReference[$section.Links[$svg]]
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        $updated = $updated -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$([regex]::Escape($svg))`")", "`${1}$url`${2}"
     }
-}
-foreach ($entry in $remaining.GetEnumerator()) {
-    $orderedLines.Add("$($entry.Key) = $($entry.Value)")
-}
-
-$quickReferenceBlock = "<!-- Quick Reference --`n$($orderedLines -join ("`n`n"))`n-->"
-$readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --.*?-->', $quickReferenceBlock)
-
-if ($readmeUpdated -match '(?s)(?<section>### Windows\b.*?(?=### macOS|## Tabs))') {
-    $sectionText = $Matches['section']
-    $updatedSection = $sectionText
-    foreach ($svgFile in $winSvgLinks.Keys) {
-        $downloadUrl = $winSvgLinks[$svgFile]
-        if ([string]::IsNullOrWhiteSpace($downloadUrl)) { continue }
-        $escapedSvg = [regex]::Escape($svgFile)
-        $updatedSection = $updatedSection -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$escapedSvg`")", "`${1}$downloadUrl`${2}"
-    }
-    $readmeUpdated = $readmeUpdated.Replace($sectionText, $updatedSection)
-}
-
-if ($readmeUpdated -match '(?s)(?<section>### macOS\b.*?(?=## Tabs))') {
-    $sectionText = $Matches['section']
-    $updatedSection = $sectionText
-    foreach ($svgFile in $macSvgLinks.Keys) {
-        $downloadUrl = $macSvgLinks[$svgFile]
-        if ([string]::IsNullOrWhiteSpace($downloadUrl)) { continue }
-        $escapedSvg = [regex]::Escape($svgFile)
-        $updatedSection = $updatedSection -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$escapedSvg`")", "`${1}$downloadUrl`${2}"
-    }
-    $readmeUpdated = $readmeUpdated.Replace($sectionText, $updatedSection)
+    $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 
 if ($readmeUpdated -eq $readmeContents) {
@@ -88,3 +54,4 @@ if ($readmeUpdated -eq $readmeContents) {
 }
 Set-Content -LiteralPath $readme -Value $readmeUpdated -NoNewline -Encoding utf8NoBOM
 Write-Host "Updated README.md for v$versionContents"
+exit 0

@@ -1,21 +1,11 @@
 #requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 
-function Join-RepoPath {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Segments)
-    if (-not $Segments.Count) { throw 'Join-RepoPath requires at least one segment.' }
-    $path = $Segments[0]
-    for ($i = 1; $i -lt $Segments.Count; $i++) {
-        $segment = $Segments[$i].TrimStart('/')
-        $path = if ($path.EndsWith('/')) { "$path$segment" } else { "$path/$segment" }
-    }
-    return $path
-}
+. (Join-Path $PSScriptRoot 'copyToOS.ps1')
 
 $repoRoot = (Split-Path $PSScriptRoot -Parent) -replace '\\', '/'
-$projectName = "skeleton"
-$source = Join-RepoPath $repoRoot $projectName
-$csproj = Join-RepoPath $source "$projectName.csproj"
+$projectName = 'skeleton'
+$csproj = Join-RepoPath $repoRoot $projectName "$projectName.csproj"
 $dotnetFramework = 'net10.0'
 $versionFolder = Join-RepoPath $repoRoot '.version'
 $version = Join-RepoPath $versionFolder 'version'; $versionContents = ([IO.File]::ReadAllText($version)).Trim()
@@ -27,10 +17,9 @@ $readmeContents = Get-Content -LiteralPath $readme -Raw
 $installerFolder = Join-RepoPath $repoRoot '.installer'
 $installerOutput = Join-RepoPath $installerFolder 'Output'
 $ISCC = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-$appPublisher = "fosterbarnes"
+$appPublisher = 'fosterbarnes'
 $appURL = "https://github.com/$appPublisher/$projectName"
-$copyrightHolder = 'Foster Barnes'
-$appCopyright = "Copyright © $(Get-Date -Format yyyy) $copyrightHolder"
+$appCopyright = "Copyright © $(Get-Date -Format yyyy) Foster Barnes"
 $tag = if ([string]::IsNullOrWhiteSpace($versionTagContents)) { "v$versionContents" } else { $versionTagContents }
 $ghRepo = "$appPublisher/$projectName"
 $appIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.ico"
@@ -53,34 +42,35 @@ $platformTargetDefs = @{
     )
 }
 
-function Expand-BuildTarget {
+function Expand-PlatformTarget {
     param([Parameter(Mandatory)][hashtable]$Def)
 
-    $binFolder = Join-RepoPath $publishFolder $Def.PublishDir
-    $target = @{
-        Architecture        = $Def.Architecture
-        RuntimeIdentifier   = $Def.RuntimeIdentifier
-        BinFolder           = $binFolder
+    $bin = Join-RepoPath $publishFolder $Def.PublishDir
+    $t = @{
+        Architecture      = $Def.Architecture
+        RuntimeIdentifier = $Def.RuntimeIdentifier
+        BinFolder         = $bin
     }
-
-    if ($IsMacOS) {
-        $target.HostPath = Join-RepoPath $binFolder $projectName
-        $target.AssetTag = $Def.AssetTag
-        $target.AppBundlePath = Join-RepoPath $binFolder "$projectName.app"
+    if ($Def.AssetTag) {
+        $t.AssetTag = $Def.AssetTag
+        $t.HostPath = Join-RepoPath $bin $projectName
+        $t.AppBundlePath = Join-RepoPath $bin "$projectName.app"
     }
-    else {
-        $target.ExePath = Join-RepoPath $binFolder "$projectName.exe"
-        $target.InstallerName = "$projectName-$($Def.Architecture)-installer.exe"
-        $target.InstallerScript = Join-RepoPath $installerFolder "$projectName.$($Def.IssSuffix).installer.iss"
+    if ($Def.IssSuffix) {
+        $t.ExePath = Join-RepoPath $bin "$projectName.exe"
+        $t.InstallerName = "$projectName-$($Def.Architecture)-installer.exe"
+        $t.InstallerScript = Join-RepoPath $installerFolder "$projectName.$($Def.IssSuffix).installer.iss"
     }
-
-    return $target
+    return $t
 }
 
-$buildTargets = @($platformTargetDefs[$(if ($IsMacOS) { 'Mac' } else { 'Windows' })] | ForEach-Object { Expand-BuildTarget $_ })
-
-$winReleaseTargets = @($platformTargetDefs.Windows | ForEach-Object { @{ Architecture = $_.Architecture; BinFolder = Join-RepoPath $publishFolder $_.PublishDir; InstallerName = "$projectName-$($_.Architecture)-installer.exe" } })
-$macReleaseTargets = @($platformTargetDefs.Mac | ForEach-Object { @{ AssetTag = $_.AssetTag; AppBundlePath = Join-RepoPath $publishFolder $_.PublishDir "$projectName.app" } })
+$expanded = @{
+    Windows = @($platformTargetDefs.Windows | ForEach-Object { Expand-PlatformTarget $_ })
+    Mac     = @($platformTargetDefs.Mac | ForEach-Object { Expand-PlatformTarget $_ })
+}
+$buildTargets = $expanded[$(if ($IsMacOS) { 'Mac' } else { 'Windows' })]
+$winReleaseTargets = @($expanded.Windows | ForEach-Object { @{ Architecture = $_.Architecture; BinFolder = $_.BinFolder; InstallerName = $_.InstallerName } })
+$macReleaseTargets = @($expanded.Mac | ForEach-Object { @{ Architecture = $_.Architecture; AssetTag = $_.AssetTag; AppBundlePath = $_.AppBundlePath } })
 
 $publishStripFiles = @(
     'Avalonia.DesignerSupport.dll', 'Avalonia.Remote.Protocol.dll',
@@ -92,17 +82,7 @@ $publishStripFiles = @(
     @('Avalonia.Native.dll')
 })
 
-function Get-IssPath {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Segments)
-    return ($Segments -join '\')
-}
-
-function Normalize-PathSlashes {
-    param([Parameter(Mandatory)][string]$Path)
-    return $Path.Replace('\', '/')
-}
-
-. (Join-Path $PSScriptRoot 'copyToOS.ps1')
+function Get-IssDefinePattern([string]$Name) { "#define\s+$([regex]::Escape($Name))\s+`"([^`"]*)`"" }
 
 function Test-IssDefine {
     param(
@@ -110,10 +90,10 @@ function Test-IssDefine {
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$ExpectedValue
     )
-    $pattern = "#define\s+$([regex]::Escape($Name))\s+`"([^`"]*)`""
-    if ($Content -notmatch $pattern) { return $false }
+    if ($Content -notmatch (Get-IssDefinePattern $Name)) { return $false }
     return (Normalize-PathSlashes $Matches[1]) -eq (Normalize-PathSlashes $ExpectedValue)
 }
+
 function Set-VersionBuildPlatform {
     param(
         [Parameter(Mandatory)][string]$Platform,
@@ -129,8 +109,7 @@ function Ensure-VersionBuildPlatform {
 
     $platform = if (-not [string]::IsNullOrWhiteSpace($Architecture)) {
         $Architecture
-    }
-    else {
+    } else {
         switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()) {
             'Arm64' { 'arm64' }
             'X86'   { if (-not $IsMacOS) { 'x86' } else { 'arm64' } }
@@ -144,17 +123,15 @@ function Ensure-VersionBuildPlatform {
 function Resolve-BuildArchitecture {
     param([string[]]$FlagArgs)
 
-    $hasArm = $false
-    $has64Flag = $false
-    $resolved = [System.Collections.Generic.List[string]]::new()
+    $hasArm = $false; $has64Flag = $false; $resolved = @()
 
     foreach ($a in @($FlagArgs)) {
         if ([string]::IsNullOrWhiteSpace($a)) { continue }
         switch -Regex ($a.Trim()) {
-            '(?i)^(--arm64|-arm64)$' { $resolved.Add('arm64'); break }
-            '(?i)^(--x64|-x64)$' { $resolved.Add('x64'); break }
-            '(?i)^(--x86|-x86)$' { if (-not $IsMacOS) { $resolved.Add('x86') }; break }
-            '(?i)^(--86|-86)$' { if (-not $IsMacOS) { $resolved.Add('x86') }; break }
+            '(?i)^(--arm64|-arm64)$' { $resolved += 'arm64'; break }
+            '(?i)^(--x64|-x64)$' { $resolved += 'x64'; break }
+            '(?i)^(--x86|-x86)$' { if (-not $IsMacOS) { $resolved += 'x86' }; break }
+            '(?i)^(--86|-86)$' { if (-not $IsMacOS) { $resolved += 'x86' }; break }
             '(?i)^(--arm|-arm)$' { $hasArm = $true; break }
             '(?i)^(--64|-64)$' { $has64Flag = $true; break }
             default {
@@ -164,9 +141,9 @@ function Resolve-BuildArchitecture {
         }
     }
 
-    if ($hasArm -and $has64Flag) { $resolved.Add('arm64') }
-    elseif ($has64Flag) { $resolved.Add('x64') }
-    elseif ($hasArm) { $resolved.Add('arm64') }
+    if ($hasArm -and $has64Flag) { $resolved += 'arm64' }
+    elseif ($has64Flag) { $resolved += 'x64' }
+    elseif ($hasArm) { $resolved += 'arm64' }
 
     $unique = @($resolved | Select-Object -Unique)
     if ($unique.Count -gt 1) { throw "Conflicting architecture flags: $($unique -join ', ')" }
@@ -180,7 +157,18 @@ function Select-BuildTargets {
     if ([string]::IsNullOrWhiteSpace($Architecture)) { return $buildTargets }
     $filtered = @($buildTargets | Where-Object { $_.Architecture -eq $Architecture })
     if (-not $filtered.Count) { throw "No build target for architecture: $Architecture" }
+    if ($filtered.Count -eq 1) { return ,$filtered[0] }
     return $filtered
+}
+
+function Get-InstallerIssDefines {
+    [ordered]@{
+        AppVersion    = $versionContents
+        AppCopyright  = $appCopyright
+        AppPublisher  = $appPublisher
+        AppURL        = $appURL
+        SetupIconFile = @('..', '.resources', 'icon', "$projectName.ico") -join '\'
+    }
 }
 
 function Sync-InstallerDefines {
@@ -188,20 +176,15 @@ function Sync-InstallerDefines {
     if (-not (Test-Path -LiteralPath $ISCC)) { throw "Inno Setup compiler not found: $ISCC" }
     if ([string]::IsNullOrWhiteSpace($versionContents)) { throw "Version is empty: $version" }
 
-    $defines = [ordered]@{
-        AppVersion   = $versionContents
-        AppCopyright = $appCopyright
-    }
-
+    $defines = Get-InstallerIssDefines
     foreach ($target in $buildTargets) {
         $path = $target.InstallerScript
         $content = [IO.File]::ReadAllText($path)
         $original = $content
-        foreach ($entry in $defines.GetEnumerator()) {
-            $pattern = "#define $($entry.Key) `"[^`"]*`""
-            if ($content -notmatch $pattern) { throw "$path`: missing $($entry.Key) define" }
-            $defineLine = "#define $($entry.Key) `"$($entry.Value)`""
-            $content = [regex]::Replace($content, $pattern, $defineLine, 1)
+        foreach ($key in 'AppVersion', 'AppCopyright') {
+            $pattern = Get-IssDefinePattern $key
+            if ($content -notmatch $pattern) { throw "$path`: missing $key define" }
+            $content = [regex]::Replace($content, $pattern, "#define $key `"$($defines[$key])`"", 1)
         }
         if ($content -ne $original) {
             [IO.File]::WriteAllText($path, $content)
@@ -228,12 +211,7 @@ function Remove-PublishArtifacts {
         Remove-Item -LiteralPath $pdb.FullName -Force
     }
 
-    foreach ($name in $publishStripFiles) {
-        $path = Join-Path $BinFolder $name
-        if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
-    }
-
-    foreach ($name in @("$projectName.ico", "${projectName}256.png", 'VersionBuild')) {
+    foreach ($name in $publishStripFiles + @("$projectName.ico", "${projectName}256.png", 'VersionBuild')) {
         $path = Join-Path $BinFolder $name
         if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
     }
@@ -259,9 +237,7 @@ function New-MacPortableZip {
 }
 
 function New-MacAppBundle {
-    param(
-        [Parameter(Mandatory)][hashtable]$Target
-    )
+    param([Parameter(Mandatory)][hashtable]$Target)
 
     $binFolder = $Target.BinFolder
     $appBundle = $Target.AppBundlePath
@@ -269,14 +245,11 @@ function New-MacAppBundle {
     if (-not (Test-Path -LiteralPath $hostFile)) { throw "Missing app host (run build.ps1 first): $hostFile" }
 
     Set-MacHostExecutable $hostFile
-
     if (Test-Path -LiteralPath $appBundle) { Remove-Item -LiteralPath $appBundle -Recurse -Force }
 
-    $contents = Join-Path $appBundle 'Contents'
-    $macOsDir = Join-Path $contents 'MacOS'
-    $resourcesDir = Join-Path $contents 'Resources'
-    New-Item -ItemType Directory -Path $macOsDir -Force | Out-Null
-    New-Item -ItemType Directory -Path $resourcesDir -Force | Out-Null
+    $macOsDir = Join-Path $appBundle 'Contents/MacOS'
+    $resourcesDir = Join-Path $appBundle 'Contents/Resources'
+    New-Item -ItemType Directory -Path $macOsDir, $resourcesDir -Force | Out-Null
 
     if (-not (Test-Path -LiteralPath $macAppIcon)) { throw "Missing macOS app icon: $macAppIcon" }
     Copy-Item -LiteralPath $macAppIcon -Destination (Join-Path $resourcesDir "$projectName.icns") -Force
@@ -287,12 +260,29 @@ function New-MacAppBundle {
     }
 
     if (-not (Test-Path -LiteralPath $macInfoPlist)) { throw "Missing macOS Info.plist template: $macInfoPlist" }
-    $plist = ([IO.File]::ReadAllText($macInfoPlist)).Replace('__VERSION__', $versionContents)
-    [IO.File]::WriteAllText((Join-Path $contents 'Info.plist'), $plist)
+    [IO.File]::WriteAllText((Join-Path $appBundle 'Contents/Info.plist'), ([IO.File]::ReadAllText($macInfoPlist)).Replace('__VERSION__', $versionContents))
 
-    Set-MacHostExecutable (Join-Path $macOsDir $projectName)
-    Set-MacHostExecutable (Join-Path $macOsDir 'updater')
+    foreach ($p in (Join-Path $macOsDir $projectName), (Join-Path $macOsDir 'updater')) { Set-MacHostExecutable $p }
     Write-Host "Created $appBundle"
+}
+
+function Invoke-MacAppBundleCodesign {
+    param([Parameter(Mandatory)][array]$Targets)
+
+    $identity = $env:SKELETON_MAC_SIGN_IDENTITY
+    foreach ($t in $Targets) {
+        $app = $t.AppBundlePath
+        if (-not (Test-Path -LiteralPath $app)) { throw "Missing app bundle (run build.ps1 first): $app" }
+        if ([string]::IsNullOrWhiteSpace($identity)) {
+            Write-Host "Skipping codesign for $($t.Architecture) (SKELETON_MAC_SIGN_IDENTITY not set): $app"
+            continue
+        }
+        Write-Host "Codesigning $($t.Architecture) app bundle: $app"
+        & codesign --force --deep --sign $identity --options runtime $app
+        if ($LASTEXITCODE) { throw "codesign failed for $app (exit $LASTEXITCODE)" }
+        & codesign --verify --deep --strict $app
+        if ($LASTEXITCODE) { throw "codesign verify failed for $app (exit $LASTEXITCODE)" }
+    }
 }
 
 function Get-WinReleaseAssetName {
@@ -309,46 +299,24 @@ function Get-MacPortableReleaseAssetName {
     '{0}_v{1}_{2}.zip' -f $projectName, $versionContents, $AssetTag
 }
 
-function Resolve-MacAssetTag {
-    param([Parameter(Mandatory)][string]$Architecture)
-
-    switch ($Architecture) {
-        'arm64' { return 'macOS-arm' }
-        'x64' { return 'macOS-intel' }
-        default { throw "Unsupported macOS architecture: $Architecture" }
-    }
-}
-
-function Get-ReleaseTargetsForArchitecture {
-    param([string]$Architecture)
-
-    if ($IsMacOS) {
-        if ([string]::IsNullOrWhiteSpace($Architecture)) { return $macReleaseTargets }
-        $tag = Resolve-MacAssetTag $Architecture
-        return @($macReleaseTargets | Where-Object { $_.AssetTag -eq $tag })
-    }
-
-    if ([string]::IsNullOrWhiteSpace($Architecture)) { return $winReleaseTargets }
-    return @($winReleaseTargets | Where-Object { $_.Architecture -eq $Architecture })
-}
-
 function Copy-ReleaseArtifactsToPublish {
     param([string]$Architecture)
 
-    $targets = Get-ReleaseTargetsForArchitecture $Architecture
+    $targets = if ($IsMacOS) {
+        if ([string]::IsNullOrWhiteSpace($Architecture)) { $macReleaseTargets } else { @($macReleaseTargets | Where-Object Architecture -eq $Architecture) }
+    } else {
+        if ([string]::IsNullOrWhiteSpace($Architecture)) { $winReleaseTargets } else { @($winReleaseTargets | Where-Object Architecture -eq $Architecture) }
+    }
     if (-not $targets.Count) { throw "No release targets for architecture: $Architecture" }
 
     foreach ($target in $targets) {
         if ($IsMacOS) {
             $appBundle = $target.AppBundlePath
-            if (-not (Test-Path -LiteralPath $appBundle)) {
-                throw "Missing macOS app bundle (run build.ps1 first): $appBundle"
-            }
+            if (-not (Test-Path -LiteralPath $appBundle)) { throw "Missing macOS app bundle (run build.ps1 first): $appBundle" }
 
             $dest = Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $target.AssetTag)
             Write-Host "Staging macOS portable: $dest"
             New-MacPortableZip -AppBundle $appBundle -DestinationPath $dest
-
             $publishDir = Split-Path $appBundle -Parent
             Remove-TreeForce $publishDir
             Write-Host "Removed macOS publish output: $publishDir"
@@ -357,11 +325,9 @@ function Copy-ReleaseArtifactsToPublish {
 
         $arch = $target.Architecture
         $binFolder = $target.BinFolder
-        if (-not (Test-Path -LiteralPath $binFolder)) {
-            throw "Missing Windows publish ($arch). Run build.ps1 first: $binFolder"
-        }
+        if (-not (Test-Path -LiteralPath $binFolder)) { throw "Missing Windows publish ($arch). Run build.ps1 first: $binFolder" }
 
-        $binItems = @(Get-ChildItem -LiteralPath $binFolder -Force | ForEach-Object { $_.FullName })
+        $binItems = @(Get-ChildItem -LiteralPath $binFolder -Force | ForEach-Object FullName)
         if (-not $binItems.Count) { throw "Windows publish folder is empty ($arch): $binFolder" }
 
         $portableDest = Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Portable -Architecture $arch)
@@ -370,9 +336,7 @@ function Copy-ReleaseArtifactsToPublish {
         Compress-Archive -Path $binItems -DestinationPath $portableDest -Force
 
         $builtInstaller = Join-Path $installerOutput $target.InstallerName
-        if (-not (Test-Path -LiteralPath $builtInstaller)) {
-            throw "Missing Windows installer ($arch). Run buildInstaller.ps1 first: $builtInstaller"
-        }
+        if (-not (Test-Path -LiteralPath $builtInstaller)) { throw "Missing Windows installer ($arch). Run buildInstaller.ps1 first: $builtInstaller" }
 
         $installerDest = Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Installer -Architecture $arch)
         Write-Host "Staging Windows installer: $installerDest"
@@ -387,10 +351,6 @@ function Copy-ReleaseArtifactsToPublish {
     Write-Host "Release artifacts staged in $publishFolder"
 }
 
-$buildEntryScripts = 'build.ps1', '.run.ps1', 'buildUpdater.ps1'
-$callerScript = (Get-PSCallStack)[1].ScriptName
-$caller = if ($callerScript) { Split-Path $callerScript -Leaf } else { $null }
-if ($caller -in $buildEntryScripts) {
-    if ($IsMacOS) { Clear-WindowsBuildArtifacts }
-    else { Clear-MacBuildArtifacts }
+if (($c = (Get-PSCallStack)[1].ScriptName) -and (Split-Path $c -Leaf) -in 'build.ps1', '.run.ps1', 'buildUpdater.ps1') {
+    if ($IsMacOS) { Clear-WindowsBuildArtifacts } else { Clear-MacBuildArtifacts }
 }

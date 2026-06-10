@@ -7,14 +7,13 @@ $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $repoRoot
 
 Ensure-VersionBuildPlatform $Architecture
-& dotnet restore skeleton.sln
+& dotnet restore (Join-RepoPath $repoRoot "$projectName.sln")
 if ($LASTEXITCODE) { throw "dotnet restore failed (exit $LASTEXITCODE)" }
 
-$selectedTargets = Select-BuildTargets $Architecture
-foreach ($target in $selectedTargets) {
-    Write-Host "Clearing $($target.RuntimeIdentifier) build..."
-    if (Test-Path -LiteralPath $target.BinFolder) { Remove-Item -LiteralPath $target.BinFolder -Recurse -Force }
+$targets = Select-BuildTargets $Architecture
+foreach ($target in $targets) {
     Write-Host "Building $($target.RuntimeIdentifier)... ($($target.BinFolder))"
+    Remove-TreeForce $target.BinFolder
     & dotnet publish $csproj -c Release -r $target.RuntimeIdentifier --no-self-contained -p:PublishReadyToRun=true -o $target.BinFolder
     if ($LASTEXITCODE) { throw "dotnet publish failed ($($target.RuntimeIdentifier) exit $LASTEXITCODE)" }
 }
@@ -22,15 +21,8 @@ foreach ($target in $selectedTargets) {
 & (Join-Path $PSScriptRoot 'buildUpdater.ps1') -Architecture $Architecture
 if ($LASTEXITCODE) { throw "buildUpdater failed (exit $LASTEXITCODE)" }
 
-foreach ($target in $selectedTargets) {
-    if ($IsMacOS) {
-        $updaterPath = Join-Path $target.BinFolder 'updater'
-        if (-not (Test-Path -LiteralPath $updaterPath)) { throw "Missing updater (run buildUpdater.ps1 first): $updaterPath" }
-    }
+foreach ($target in $targets) {
     Copy-Item -LiteralPath $version -Destination (Join-Path $target.BinFolder 'Version') -Force
     Remove-PublishArtifacts $target.BinFolder
-    if ($IsMacOS) {
-        Set-MacHostExecutable $target.HostPath
-        New-MacAppBundle $target
-    }
+    if ($IsMacOS) { New-MacAppBundle $target }
 }

@@ -34,7 +34,7 @@ $steps = @(
 foreach ($step in $steps) {
     $stepScript = Join-Path $PSScriptRoot $step.Script
     if ($step.UseArch) { & $stepScript @archParams } else { & $stepScript }
-    if ($LASTEXITCODE -ne 0) { throw "$($step.Name) failed (exit $LASTEXITCODE)." }
+    if ($LASTEXITCODE) { throw "$($step.Name) failed (exit $LASTEXITCODE)." }
 
     if ($step.Name -eq 'buildInstaller') {
         Copy-ReleaseArtifactsToPublish @archParams

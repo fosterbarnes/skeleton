@@ -19,9 +19,9 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_x64.exe"><img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_x86.exe"><img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_x64.exe"><img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_x86.exe"><img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
 </tr>
 </tbody>
 </table>
@@ -29,9 +29,9 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_x64.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_x86.zip"><img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_arm64.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_x64.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_x86.zip"><img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_arm64.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr>
 </tbody>
 </table>
@@ -41,8 +41,8 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeleton_v0.3.1_macOS-intel.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeleton_v0.3.1_macOS-arm.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-intel.zip"><img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr>
 </tbody>
 </table>
@@ -111,22 +111,22 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 | Linux      | x64, arm64      | Planned |
 
 <!-- Quick Reference --
-version = 0.3.1
+version = 0.3.2
 
-x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_x64.exe
+x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_x64.exe
 
-x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_x64.zip
+x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_x64.zip
 
-x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_x86.exe
+x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_x86.exe
 
-x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_x86.zip
+x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_x86.zip
 
-ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonInstaller_v0.3.1_arm64.exe
+ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonInstaller_v0.3.2_arm64.exe
 
-ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeletonPortable_v0.3.1_arm64.zip
+ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeletonPortable_v0.3.2_arm64.zip
 
-osxX64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeleton_v0.3.1_macOS-intel.zip
+osxX64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-intel.zip
 
-osxArm64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.1/skeleton_v0.3.1_macOS-arm.zip
+osxArm64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-arm.zip
 -->
 
