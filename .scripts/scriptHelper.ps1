@@ -24,6 +24,7 @@ $tag = if ([string]::IsNullOrWhiteSpace($versionTagContents)) { "v$versionConten
 $ghRepo = "$appPublisher/$projectName"
 $appIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.ico"
 $macInfoPlist = Join-RepoPath $repoRoot '.resources' 'mac' 'Info.plist'
+$macEntitlements = Join-RepoPath $repoRoot '.resources' 'mac' 'Entitlements.plist'
 $macAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.icns"
 $buildNotes = Join-RepoPath $repoRoot '.md' 'buildNotes.txt'
 $publishFolder = Join-RepoPath $repoRoot 'publish'
@@ -225,6 +226,34 @@ function Set-MacHostExecutable {
     if ($LASTEXITCODE) { throw "chmod failed for $Path (exit $LASTEXITCODE)" }
 }
 
+function Get-ZipEntryUnixMode {
+    param(
+        [Parameter(Mandatory)][string]$ZipPath,
+        [Parameter(Mandatory)][string]$EntryPath
+    )
+
+    $output = & zipinfo -v $ZipPath $EntryPath 2>&1
+    if ($LASTEXITCODE) { return $null }
+    $match = [regex]::Match(($output -join "`n"), 'Unix file attributes \((\d+) octal\):')
+    if (-not $match.Success) { return $null }
+    return $match.Groups[1].Value
+}
+
+function Assert-MacPortableZipExecutableEntries {
+    param(
+        [Parameter(Mandatory)][string]$ZipPath,
+        [Parameter(Mandatory)][string]$AppBundleName
+    )
+
+    foreach ($name in $projectName, 'updater') {
+        $entry = "$AppBundleName/Contents/MacOS/$name"
+        $mode = Get-ZipEntryUnixMode -ZipPath $ZipPath -EntryPath $entry
+        if ($mode -ne '100755') {
+            throw "macOS portable zip entry must be 100755: $entry (got $mode) in $ZipPath"
+        }
+    }
+}
+
 function New-MacPortableZip {
     param(
         [Parameter(Mandatory)][string]$AppBundle,
@@ -234,6 +263,21 @@ function New-MacPortableZip {
     if (Test-Path -LiteralPath $DestinationPath) { Remove-Item -LiteralPath $DestinationPath -Force }
     & ditto -c -k --sequesterRsrc --keepParent $AppBundle $DestinationPath
     if ($LASTEXITCODE) { throw "ditto failed for $AppBundle (exit $LASTEXITCODE)" }
+
+    $bundleName = [IO.Path]::GetFileName($AppBundle)
+    Assert-MacPortableZipExecutableEntries -ZipPath $DestinationPath -AppBundleName $bundleName
+}
+
+function Confirm-MacAppBundleSigned {
+    param([Parameter(Mandatory)][string]$AppBundle)
+
+    & codesign --verify --deep --strict $AppBundle
+    if ($LASTEXITCODE) { throw "codesign verify failed for $AppBundle (exit $LASTEXITCODE)" }
+
+    $details = (& codesign -dv $AppBundle 2>&1 | ForEach-Object { "$_" }) -join "`n"
+    if ($details -notmatch 'Info\.plist entries=') {
+        throw "macOS app bundle signature is not sealed (Info.plist not bound): $AppBundle"
+    }
 }
 
 function New-MacAppBundle {
@@ -274,14 +318,17 @@ function Invoke-MacAppBundleCodesign {
         $app = $t.AppBundlePath
         if (-not (Test-Path -LiteralPath $app)) { throw "Missing app bundle (run build.ps1 first): $app" }
         if ([string]::IsNullOrWhiteSpace($identity)) {
-            Write-Host "Skipping codesign for $($t.Architecture) (SKELETON_MAC_SIGN_IDENTITY not set): $app"
-            continue
+            Write-Host "Adhoc sealing $($t.Architecture) app bundle: $app"
+            & codesign --force --deep --sign - $app
+            if ($LASTEXITCODE) { throw "adhoc codesign failed for $app (exit $LASTEXITCODE)" }
         }
-        Write-Host "Codesigning $($t.Architecture) app bundle: $app"
-        & codesign --force --deep --sign $identity --options runtime $app
-        if ($LASTEXITCODE) { throw "codesign failed for $app (exit $LASTEXITCODE)" }
-        & codesign --verify --deep --strict $app
-        if ($LASTEXITCODE) { throw "codesign verify failed for $app (exit $LASTEXITCODE)" }
+        else {
+            if (-not (Test-Path -LiteralPath $macEntitlements)) { throw "Missing macOS entitlements: $macEntitlements" }
+            Write-Host "Codesigning $($t.Architecture) app bundle: $app"
+            & codesign --force --options runtime --entitlements $macEntitlements --sign $identity $app
+            if ($LASTEXITCODE) { throw "codesign failed for $app (exit $LASTEXITCODE)" }
+        }
+        Confirm-MacAppBundleSigned $app
     }
 }
 

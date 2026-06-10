@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 $buildAllHelp = if ($IsMacOS) {
 @"
 .buildAll.ps1 [-arm64 | -arm | -x64 | -arm -64 | -64]
-Publish main app, updater, app bundle, and portable zip for macOS (osx-arm64, osx-x64) under publish/. Optional codesign via buildInstaller.ps1.
+Publish main app, updater, adhoc-sealed app bundle, and portable zip for macOS (osx-arm64, osx-x64) under publish/. Developer ID signing optional via buildInstaller.ps1.
 "@
 }
 else {

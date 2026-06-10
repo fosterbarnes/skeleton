@@ -1,5 +1,3 @@
-Script improvements (v0.3.2) 
+macOS .app hotfix (v0.3.3) 
 
-- Allow for working in the same project folder across multiple OS's when using '.run.ps1' or '.buildAll.ps1'. Automatically clears permissions issues before attempting to build for current platform
-- General script improvements
-- .draftRelease.ps1 '-b' or '-build' is now required to build before creating a release
+- Fix macOS & gatekeeper issues after downloading zipped .app from github releases

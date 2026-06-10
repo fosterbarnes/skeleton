@@ -10,7 +10,7 @@ $targets = Select-BuildTargets $Architecture
 
 if ($IsMacOS) {
     Invoke-MacAppBundleCodesign $targets
-    Write-Host "Done."
+    Write-Host 'App bundles sealed.'
     return
 }
 
