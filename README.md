@@ -8,10 +8,6 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 
 <br><br><br>
 
-| <h3>General</h3> |
-|:---:|
-| ![General](./.resources/scr/1.png) |
-
 ## Downloads
 
 ### Windows
@@ -41,13 +37,11 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 <table border="0">
 <tbody>
 <tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-intel.zip"><img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.2/skeleton_v0.3.2_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.3/skeleton_v0.3.3_macOS-intel.zip"><img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.3.3/skeleton_v0.3.3_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr>
 </tbody>
 </table>
-
-macOS portable zips contain `skeleton.app`. After downloading, first launch may require **System Settings → Privacy & Security → Open Anyway** (unsigned app).
 
 ## Tabs
 

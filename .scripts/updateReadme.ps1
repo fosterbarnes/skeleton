@@ -32,7 +32,7 @@ $svgSections = @(
     }
     @{
         Pattern = '(?s)(?<section>### macOS\b.*?(?=## Tabs))'
-        Links = @{ 'download_portable_x64.svg' = 'osxX64Portable'; 'download_portable_arm64.svg' = 'osxArm64Portable' }
+        Links = @{ 'download_appleIntel.svg' = 'osxX64Portable'; 'download_appleArm.svg' = 'osxArm64Portable' }
     }
 )
 
