@@ -1,6 +1,7 @@
 #requires -Version 7.0
 param(
-    [Alias('b')][switch]$build
+    [Alias('b')][switch]$build,
+    [Alias('f')][switch]$foundOnly
 )
 $ErrorActionPreference = 'Stop'
 
@@ -12,8 +13,13 @@ if ($build) {
     if ($LASTEXITCODE) { throw "buildAll failed (exit $LASTEXITCODE)." }
 }
 
-function Assert-ReleasePath([string]$Path, [string]$Message) {
-    if (-not (Test-Path -LiteralPath $Path)) { throw $Message }
+function Resolve-ReleaseAssetPath([string]$Path, [string]$Message) {
+    if (Test-Path -LiteralPath $Path) { return $Path }
+    if ($foundOnly) {
+        Write-Host "  Skipping (not found): $([IO.Path]::GetFileName($Path))" -ForegroundColor Yellow
+        return $null
+    }
+    throw $Message
 }
 
 function Get-ReleaseNotes {
@@ -43,14 +49,20 @@ function Invoke-DraftRelease {
     if ([string]::IsNullOrWhiteSpace($versionContents)) { throw "Version is empty: $version" }
 
     Write-Host "Version: $versionContents  Tag: $tag  Repo: $ghRepo"
+    if ($foundOnly) {
+        Write-Host 'Uploading only release assets found under publish/ (-foundOnly).' -ForegroundColor Cyan
+    }
     Write-Host "`nExpected release outputs (under publish/):"
     foreach ($t in $winReleaseTargets) {
         $a = $t.Architecture
-        Write-Host "  Windows $a`: $(Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Portable -Architecture $a))"
-        Write-Host "    installer: $(Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Installer -Architecture $a))"
+        $portable = Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Portable -Architecture $a)
+        $installer = Join-Path $publishFolder (Get-WinReleaseAssetName -Kind Installer -Architecture $a)
+        Write-Host "  Windows $a`: $portable$(if ($foundOnly) { if (Test-Path -LiteralPath $portable) { ' [found]' } else { ' [missing]' } })"
+        Write-Host "    installer: $installer$(if ($foundOnly) { if (Test-Path -LiteralPath $installer) { ' [found]' } else { ' [missing]' } })"
     }
     foreach ($t in $macReleaseTargets) {
-        Write-Host "  macOS $($t.AssetTag): $(Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $t.AssetTag))"
+        $portable = Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $t.AssetTag)
+        Write-Host "  macOS $($t.AssetTag): $portable$(if ($foundOnly) { if (Test-Path -LiteralPath $portable) { ' [found]' } else { ' [missing]' } })"
     }
 
     $notesFile = Join-Path $env:TEMP "releaseNotes_$tag.txt"
@@ -62,16 +74,18 @@ function Invoke-DraftRelease {
             foreach ($t in $winReleaseTargets) {
                 foreach ($kind in 'Portable', 'Installer') {
                     $p = Join-Path $publishFolder (Get-WinReleaseAssetName -Kind $kind -Architecture $t.Architecture)
-                    Assert-ReleasePath $p "Missing Windows $($kind.ToLower()) ($($t.Architecture)). Run .buildAll.ps1 on Windows first: $p"
-                    $p
+                    Resolve-ReleaseAssetPath $p "Missing Windows $($kind.ToLower()) ($($t.Architecture)). Run .buildAll.ps1 on Windows first, or pass -foundOnly to upload found assets only: $p"
                 }
             }
             foreach ($t in $macReleaseTargets) {
                 $p = Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $t.AssetTag)
-                Assert-ReleasePath $p "Missing macOS portable ($($t.AssetTag)). Run .buildAll.ps1 on macOS first: $p"
-                $p
+                Resolve-ReleaseAssetPath $p "Missing macOS portable ($($t.AssetTag)). Run .buildAll.ps1 on macOS first, or pass -foundOnly to upload found assets only: $p"
             }
-        )
+        ) | Where-Object { $_ }
+        if (-not $uploadFiles.Count) {
+            throw 'No release assets found under publish/. Run .buildAll.ps1 first.'
+        }
+        Write-Host 'Uploading:'
         $uploadFiles | ForEach-Object { Write-Host "  $([IO.Path]::GetFileName($_))" }
 
         if (git tag -l $tag 2>$null) { Write-Host "Removing local tag $tag..."; git tag -d $tag | Out-Null }
