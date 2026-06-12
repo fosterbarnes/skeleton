@@ -1,7 +1,7 @@
 #define AppName "skeleton"
 #define AppDisplayName "skeleton (ARM64)"
 #ifndef AppVersion
-#define AppVersion "0.4.0"
+#define AppVersion "0.4.1"
 #endif
 #ifndef AppPublisher
 #define AppPublisher "fosterbarnes"
@@ -11,6 +11,12 @@
 #endif
 #ifndef SetupIconFile
 #define SetupIconFile "..\.resources\icon\skeleton.ico"
+#endif
+#ifndef WizardSmallImageFile
+#define WizardSmallImageFile "..\.resources\icon\installer-wizard-small.png"
+#endif
+#ifndef WizardImageFile
+#define WizardImageFile "..\.resources\icon\installer-wizard-large.png"
 #endif
 #ifndef AppCopyright
 #define AppCopyright "Copyright © 2026 Foster Barnes"
@@ -41,6 +47,8 @@ PrivilegesRequiredOverridesAllowed=commandline
 OutputDir=Output
 OutputBaseFilename=skeleton-arm64-installer
 SetupIconFile={#SetupIconFile}
+WizardSmallImageFile={#WizardSmallImageFile}
+WizardImageFile={#WizardImageFile}
 SolidCompression=yes
 WizardStyle=classic dark
 

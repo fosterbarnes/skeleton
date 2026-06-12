@@ -23,6 +23,8 @@ $appCopyright = "Copyright © $(Get-Date -Format yyyy) Foster Barnes"
 $tag = if ([string]::IsNullOrWhiteSpace($versionTagContents)) { "v$versionContents" } else { $versionTagContents }
 $ghRepo = "$appPublisher/$projectName"
 $appIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.ico"
+$installerWizardSmallImage = Join-RepoPath $repoRoot '.resources' 'icon' 'installer-wizard-small.png'
+$installerWizardLargeImage = Join-RepoPath $repoRoot '.resources' 'icon' 'installer-wizard-large.png'
 $macInfoPlist = Join-RepoPath $repoRoot '.resources' 'mac' 'Info.plist'
 $macEntitlements = Join-RepoPath $repoRoot '.resources' 'mac' 'Entitlements.plist'
 $macAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.icns"
@@ -168,7 +170,9 @@ function Get-InstallerIssDefines {
         AppCopyright  = $appCopyright
         AppPublisher  = $appPublisher
         AppURL        = $appURL
-        SetupIconFile = @('..', '.resources', 'icon', "$projectName.ico") -join '\'
+        SetupIconFile       = @('..', '.resources', 'icon', "$projectName.ico") -join '\'
+        WizardSmallImageFile = @('..', '.resources', 'icon', 'installer-wizard-small.png') -join '\'
+        WizardImageFile     = @('..', '.resources', 'icon', 'installer-wizard-large.png') -join '\'
     }
 }
 

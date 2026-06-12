@@ -16,9 +16,11 @@ if ($IsMacOS) {
 
 Sync-InstallerDefines
 if (-not (Test-Path -LiteralPath $appIcon)) { throw "App icon not found: $appIcon" }
+if (-not (Test-Path -LiteralPath $installerWizardSmallImage)) { throw "Installer wizard image not found: $installerWizardSmallImage" }
+if (-not (Test-Path -LiteralPath $installerWizardLargeImage)) { throw "Installer wizard image not found: $installerWizardLargeImage" }
 
 $issDefines = Get-InstallerIssDefines
-$isccArgs = 'AppVersion', 'AppPublisher', 'AppURL', 'SetupIconFile' | ForEach-Object { "/D$_=$($issDefines[$_])" }
+$isccArgs = 'AppVersion', 'AppPublisher', 'AppURL', 'SetupIconFile', 'WizardSmallImageFile', 'WizardImageFile' | ForEach-Object { "/D$_=$($issDefines[$_])" }
 
 if (-not $Architecture) { Write-Host "Clearing old installers..."; Remove-Item $installerOutput -Recurse -Force -ErrorAction SilentlyContinue }
 New-Item -ItemType Directory -Path $installerOutput -Force | Out-Null
