@@ -27,6 +27,7 @@ internal static class UiTheme
         public Color? TabHeaderBg { get; init; }
         public Color? TabSelectedBg { get; init; }
         public Color? TabHoverBg { get; init; }
+        public Color? TabBevel { get; init; }
 
         public Color? TabBorder { get; init; }
         public Color? SearchBorder { get; init; }
@@ -78,6 +79,12 @@ internal static class UiTheme
         Accent = Color.Parse("#0078D4"),
         Link = Color.Parse("#0066CC"),
         MenuBack = Color.Parse("#F0F0F0"),
+
+        TabSelectedBg = Color.Parse("#F0F0F0"),
+        TabHeaderBg = Color.Parse("#E8E8E8"),
+        TabHoverBg = Color.Parse("#E2E1E1"),
+        TabBorder = Color.Parse("#A0A0A0"),
+        TabBevel = Color.Parse("#FFFFFF"),
     };
 
     private static readonly ThemePalette VsDarkPalette = new()
@@ -199,6 +206,10 @@ internal static class UiTheme
         SetBrush(resources, ThemeBrushKeys.TabHeaderBg, tabHeaderBg);
         SetBrush(resources, ThemeBrushKeys.TabSelectedBg, tabSelectedBg);
         SetBrush(resources, ThemeBrushKeys.TabHoverBg, tabHoverBg);
+
+        resources[ThemeBrushKeys.TabBevelHighlight] = p.TabBevel is { } bevel
+            ? new BoxShadows(new BoxShadow { IsInset = true, OffsetY = 1, Color = bevel })
+            : default(BoxShadows);
 
         SetBrush(resources, ThemeBrushKeys.TabBorder, Role(p.TabBorder, p.MainBorder));
         SetBrush(resources, ThemeBrushKeys.SearchBorder, Role(p.SearchBorder, p.MainBorder));

@@ -5,7 +5,6 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace skeleton.UI;
@@ -38,17 +37,6 @@ internal static class MacWindowChrome
 
         mainTabs.TemplateApplied += (_, e) => HideBuiltInTabHeaders(mainTabs, e.NameScope);
         mainTabs.Loaded += (_, _) => HideBuiltInTabHeaders(mainTabs, null);
-        macTabHeaders.Loaded += (_, _) => TabChromeHelper.SyncMacTabHeaderWidths(macTabHeaders);
-    }
-
-    public static void ScheduleMacTabHeaderWidthSync(ListBox macTabHeaders)
-    {
-        if (!OperatingSystem.IsMacOS())
-            return;
-
-        Dispatcher.UIThread.Post(
-            () => TabChromeHelper.SyncMacTabHeaderWidths(macTabHeaders),
-            DispatcherPriority.Background);
     }
 
     private static void ReparentSearchBox(Grid macChromeBar, TextBox searchBox)
@@ -58,7 +46,7 @@ internal static class MacWindowChrome
 
         Grid.SetColumn(searchBox, 2);
         Grid.SetRow(searchBox, 0);
-        searchBox.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        searchBox.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
         searchBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
         searchBox.Margin = UiMetrics.MacChromeSearchMargin;
         macChromeBar.Children.Add(searchBox);

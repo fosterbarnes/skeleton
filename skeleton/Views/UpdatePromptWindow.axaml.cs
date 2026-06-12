@@ -6,6 +6,8 @@ namespace skeleton.Views;
 
 internal sealed class UpdatePromptWindow : Window
 {
+    private readonly TaskCompletionSource<bool> _result = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     private UpdatePromptWindow(UpdateCheckResult result)
     {
         Title = "Update available";
@@ -13,6 +15,7 @@ internal sealed class UpdatePromptWindow : Window
         Height = 160;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
+        ShowInTaskbar = true;
         AppIconLoader.TryApplyWindowIcon(this);
 
         var message = new TextBlock
@@ -37,18 +40,30 @@ internal sealed class UpdatePromptWindow : Window
 
         Content = new StackPanel { Children = { message, buttons } };
 
-        apply.Click += (_, _) => Close(true);
-        later.Click += (_, _) => Close(false);
+        apply.Click += (_, _) => Complete(true);
+        later.Click += (_, _) => Complete(false);
+        Closed += (_, _) =>
+        {
+            if (!_result.Task.IsCompleted)
+                _result.TrySetResult(false);
+        };
     }
 
-    public static bool Prompt(UpdateCheckResult result)
+    public static Task<bool> PromptAsync(UpdateCheckResult result)
     {
         if (Avalonia.Application.Current?.ApplicationLifetime
             is not Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
             || desktop.MainWindow is null)
-            return false;
+            return Task.FromResult(false);
 
         var dialog = new UpdatePromptWindow(result);
-        return dialog.ShowDialog<bool>(desktop.MainWindow).GetAwaiter().GetResult();
+        dialog.Show(desktop.MainWindow);
+        return dialog._result.Task;
+    }
+
+    private void Complete(bool accepted)
+    {
+        _result.TrySetResult(accepted);
+        Close();
     }
 }

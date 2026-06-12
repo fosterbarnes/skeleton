@@ -1,7 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using skeleton.UI;
 using skeleton.ViewModels;
 
@@ -9,6 +11,8 @@ namespace skeleton.Views;
 
 public partial class MainWindow : Window
 {
+    private bool _tabStripTrailingRuleSyncScheduled;
+
     private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext!;
 
     public MainWindow()
@@ -25,11 +29,110 @@ public partial class MainWindow : Window
         ViewModel.RestoreWindowBounds(this);
         UiTheme.ApplyWindowThemeVariant(this, ViewModel.SelectedTheme);
         ViewModel.ThemeChanged += theme => UiTheme.ApplyWindowTheme(this, theme);
-        ViewModel.FontsChanged += () =>
-            TabChromeHelper.ResetAndSyncTabWidths(MainTabs, MacTabHeaders);
-        TabChromeHelper.ApplyUniformTabWidths(MainTabs, MacTabHeaders);
         WireSearch();
+        WireTabStripTrailingRule();
         ScheduleDeferredStartupWork();
+    }
+
+    private void WireTabStripTrailingRule()
+    {
+        TabHost.LayoutUpdated += OnTabStripTrailingRuleLayoutUpdated;
+        TabHost.SizeChanged += (_, _) => SyncTabStripTrailingRules();
+        MainTabs.LayoutUpdated += OnTabStripTrailingRuleLayoutUpdated;
+        MacTabHeaders.LayoutUpdated += OnTabStripTrailingRuleLayoutUpdated;
+        SyncTabStripTrailingRules();
+    }
+
+    private void OnTabStripTrailingRuleLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (_tabStripTrailingRuleSyncScheduled)
+            return;
+
+        _tabStripTrailingRuleSyncScheduled = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _tabStripTrailingRuleSyncScheduled = false;
+            SyncTabStripTrailingRules();
+        }, DispatcherPriority.Background);
+    }
+
+    private void SyncTabStripTrailingRules()
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            TabStripTrailingRule.IsVisible = false;
+            MacTabStripTrailingRule.IsVisible = true;
+            SyncTabStripTrailingRule(MacTabStripTrailingRule, MacTabHeaders, MacChromeBar);
+            return;
+        }
+
+        MacTabStripTrailingRule.IsVisible = false;
+        TabStripTrailingRule.IsVisible = true;
+        SyncTabStripTrailingRule(TabStripTrailingRule, MainTabs, TabContentHost);
+    }
+
+    private static void SyncTabStripTrailingRule(Border ruleHost, ItemsControl itemsControl, Visual coordinateRoot)
+    {
+        var startX = 0.0;
+        var baselineY = 0.0;
+        var measuredTab = false;
+        var measuredBaseline = false;
+        for (var i = 0; i < itemsControl.ItemCount; i++)
+        {
+            if (itemsControl.ContainerFromIndex(i) is not Visual tab)
+                continue;
+
+            measuredTab = true;
+            var topLeft = tab.TranslatePoint(new Point(), coordinateRoot);
+            if (topLeft is not { } origin)
+                continue;
+
+            startX = Math.Max(startX, origin.X + tab.Bounds.Width);
+
+            if (itemsControl switch
+                {
+                    TabControl tabs => i == tabs.SelectedIndex,
+                    ListBox list => i == list.SelectedIndex,
+                    _ => false
+                })
+                continue;
+
+            var bottomLeft = MeasureTabBottomLeft(tab, coordinateRoot);
+            if (bottomLeft is not { } baseline)
+                continue;
+
+            baselineY = Math.Max(
+                baselineY,
+                baseline.Y - 1 + UiMetrics.TabStripTrailingRuleBaselineOffsetPx);
+            measuredBaseline = true;
+        }
+
+        if (!measuredTab)
+        {
+            ruleHost.IsVisible = false;
+            return;
+        }
+
+        if (!measuredBaseline)
+            baselineY = UiMetrics.TabStripHeight - 1 + UiMetrics.TabStripTrailingRuleBaselineOffsetPx;
+
+        var trailingWidth = coordinateRoot.Bounds.Width - startX;
+        ruleHost.IsVisible = trailingWidth > 0.5;
+        ruleHost.Margin = new Thickness(startX, baselineY, 0, 0);
+        ruleHost.Width = trailingWidth;
+    }
+
+    private static Point? MeasureTabBottomLeft(Visual tab, Visual coordinateRoot)
+    {
+        foreach (var layoutRoot in tab.GetVisualDescendants().OfType<Border>())
+        {
+            if (layoutRoot.Name != "PART_LayoutRoot")
+                continue;
+
+            return layoutRoot.TranslatePoint(new Point(0, layoutRoot.Bounds.Height), coordinateRoot);
+        }
+
+        return tab.TranslatePoint(new Point(0, tab.Bounds.Height), coordinateRoot);
     }
 
     private void ScheduleDeferredStartupWork()
@@ -39,7 +142,6 @@ public partial class MainWindow : Window
             ViewModel.EndDeferTabContentBuild();
             ViewModel.EnsureSelectedTabContent();
             ViewModel.RegisterPickerButtons();
-            MacWindowChrome.ScheduleMacTabHeaderWidthSync(MacTabHeaders);
         }, DispatcherPriority.Background);
 
         Dispatcher.UIThread.Post(ViewModel.BeginStartupUpdateCheck, DispatcherPriority.ApplicationIdle);

@@ -20,6 +20,9 @@ internal static class ThemeBrushKeys
     public const string TabSelectedBg = "ThemeTabSelectedBgBrush";
     public const string TabHoverBg = "ThemeTabHoverBgBrush";
 
+    // Tab bevel (top highlight box shadow; theme-dependent)
+    public const string TabBevelHighlight = "ThemeTabBevelHighlight";
+
     // Border roles
     public const string TabBorder = "ThemeTabBorderBrush";
     public const string SearchBorder = "ThemeSearchBorderBrush";

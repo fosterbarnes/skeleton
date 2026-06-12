@@ -30,16 +30,5 @@ internal static class UiFontService
             ? new FontFamily($"{UiFontFamilies.ResolveMonoStack(name)}, monospace")
             : new FontFamily(UiFontFamilies.ResolveMainStack(name));
 
-    public static double GetTabSize(Application? app) =>
-        Get(app, UiFontKeys.Tab, UiFontDefaults.Tab);
-
-    public static double Get(Application? app, string key, int fallback)
-    {
-        if (app?.Resources.TryGetResource(key, app.ActualThemeVariant, out var value) == true
-            && value is double size)
-            return size;
-        return fallback;
-    }
-
     public static int Clamp(int size) => UiFontDefaults.Clamp(size);
 }

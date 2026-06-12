@@ -1,3 +1,11 @@
-macOS .app hotfix (v0.3.3) 
+winforms-ify (v0.4.0) 
 
-- Fix macOS & gatekeeper issues after downloading zipped .app from github releases
+- Major design overhaul. The end goal is a compact, cross-platform approximation of winforms, while being able to take advantage of modern niceties of avalonia and .net. 'Flat' theme for win10-11 is planned, as well as a macOS theme. These themes will not attempt to resemble winforms
+    - Make tabs more compact
+    - Change some text rendering methods
+    - Change tab length and height
+    - Fix 'goofy' text rendering for the most part. Try to match GDI font styling as closely as possible
+    - Re-arrange demos in general tab
+    - Adjust window height/width defaults and minimums
+
+- Stop auto-update notif from breaking the ui and requiring a force quit

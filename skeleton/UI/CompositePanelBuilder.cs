@@ -20,10 +20,11 @@ internal static class CompositePanelBuilder
         SettingDefinition def,
         MainWindowViewModel viewModel)
     {
+        var itemCount = viewModel.DemoListItems.Count;
         var listBox = new ListBox
         {
             ItemsSource = viewModel.DemoListItems,
-            Height = 120,
+            Height = UiMetrics.EntryListHeight(itemCount),
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         ScrollViewer.SetVerticalScrollBarVisibility(listBox, ScrollBarVisibility.Disabled);
@@ -40,7 +41,7 @@ internal static class CompositePanelBuilder
         btnRow.Children.Add(new Button { Content = "Remove" });
         btnRow.Children.Add(new Button { Content = "Edit" });
 
-        var stack = new StackPanel { Spacing = 8, Children = { frame, btnRow } };
+        var stack = new StackPanel { Spacing = UiMetrics.CompositeControlGapPx, Children = { frame, btnRow } };
         ToolTip.SetTip(stack, SettingTooltipHelper.Build(def));
         return (stack, listBox);
     }
@@ -50,7 +51,7 @@ internal static class CompositePanelBuilder
         MainWindowViewModel viewModel)
     {
         var options = def.Choices ?? def.ChoiceLabels ?? [];
-        var radioPanel = new StackPanel { Spacing = 6 };
+        var radioPanel = new StackPanel { Spacing = UiMetrics.CompositeRadioSpacingPx };
         var demoRadios = new List<RadioButton>();
         RadioButton? first = null;
 

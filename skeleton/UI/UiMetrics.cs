@@ -5,12 +5,16 @@ namespace skeleton.UI;
 internal static class UiMetrics
 {
     public const int BaselineDpi = 96;
-    public static double DefaultWidth => OperatingSystem.IsMacOS() ? 928 : 880;
-    public static double DefaultHeight => OperatingSystem.IsMacOS() ? 725 : 680;
+    public const int DefaultWidthWindows = 820;
+    public const int DefaultWidthMac = 700;
+    public const int DefaultHeightWindows = 649;
+    public const int DefaultHeightMac = 725;
+    public static double DefaultWidth => OperatingSystem.IsMacOS() ? DefaultWidthMac : DefaultWidthWindows;
+    public static double DefaultHeight => OperatingSystem.IsMacOS() ? DefaultHeightMac : DefaultHeightWindows;
     public static double MinWidth => DefaultWidth;
-    public const int MinHeight = 560;
+    public const double MinHeight = 200;
     public const int TokenColWidth = 268;
-    public const double ControlHeight = 26;
+    public const double ControlHeight = 23;
     public const double ButtonHeight = ControlHeight;
     public const double WidthNumeric = 96;
     public const int WidthCombo = 128;
@@ -19,20 +23,31 @@ internal static class UiMetrics
     public const int TextWidthMedium = 220;
     public const int TextWidthLong = 360;
     public const double SearchBoxWidth = 200;
+    public const double SearchBoxHeight = ControlHeight + 1;
+    public const double SearchBoxBottomInsetPx = 2;
     public const double SearchDropMaxHeight = 240;
     public const int OptionRowGapPx = 8;
     public const double FieldRowStepPx = 38;
-    public const double TabHeight = 28;
-    public const double TabStripHeight = 30;
+    public const double TabHeight = 22;
+    public const double TabStripHeight = 24;
     public const int MacTrafficLightLeadingInset = 58;
-    public const int TabHorizontalPadding = 10;
-    public const int TabVerticalPadding = 2;
+    public const int TabHorizontalPadding = 6;
+    public const int TabVerticalPadding = 3;
+    public const double TabFixedWidth = 100;
+    public static readonly CornerRadius TabCornerRadius = new(1.69, 1.69, 0, 0);
+    public const double TabUnselectedTopInset = 2;
+    public const double TabStripTrailingRuleBaselineOffsetPx = 0;
     public const double StatusFooterHeightPx = 36;
     public const double StatusFooterButtonSpacingPx = 8;
     public const int CellPadH = 8;
     public const int CellPadV = 1;
     public const int DataGridCellPad = 4;
     public const int MultiRowItemPx = 19;
+    public const int MultiRowItemSpacingPx = 2;
+    public const int MultiRowFramePadV = 8;
+    public const int CompositeControlGapPx = 6;
+    public const int CompositeRadioSpacingPx = 6;
+    public const int EntryListPadV = 16;
     public const int AboutIconPx = 160;
     public const int AboutTextMaxWidthPx = 680;
     public const int TabFrameInsetPx = 9;
@@ -86,17 +101,25 @@ internal static class UiMetrics
     public static Thickness TabItemPadding =>
         new(TabHorizontalPadding, TabVerticalPadding, TabHorizontalPadding, TabVerticalPadding);
 
+    public static Thickness TabUnselectedMargin =>
+        new(0, TabUnselectedTopInset, -1, 0);
+
     public static Thickness SearchBoxMargin =>
-        new(0, (TabStripHeight - ControlHeight) / 2.0, 8, 0);
+        new(0, SearchBoxBottomFromStripTop - SearchBoxHeight, 8, 0);
 
-    public static Thickness TabStripItemsMargin =>
-        new(4, 0, TabStripSearchReserve, 0);
+    public static Thickness TabStripItemsMargin => new(4, 0, 0, 0);
 
-    public static Thickness MacChromeSearchMargin => new(0, 0, 8, 0);
+    public static Thickness MacChromeSearchMargin =>
+        new(0, SearchBoxBottomFromStripTop - SearchBoxHeight, 8, 0);
 
-    public static int TabStripSearchReserve =>
-        (int)SearchBoxWidth + 16;
+    public static double SearchBoxBottomFromStripTop =>
+        (TabStripHeight - ControlHeight) / 2.0 + ControlHeight + SearchBoxBottomInsetPx;
 
     public static int MultiRowHeight(int count) =>
-        Math.Max(92, count * MultiRowItemPx + 10);
+        count <= 0
+            ? (int)ControlHeight
+            : count * MultiRowItemPx + Math.Max(0, count - 1) * MultiRowItemSpacingPx + MultiRowFramePadV;
+
+    public static int EntryListHeight(int count) =>
+        count <= 0 ? (int)ControlHeight : count * MultiRowItemPx + EntryListPadV;
 }

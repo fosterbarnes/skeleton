@@ -2,8 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:skeleton.UI">
 
+  <!-- Null background keeps the strip area transparent and non-hit-testable, so the
+       search box layered beneath the tabs stays visible and clickable. -->
   <Style Selector="TabControl.app-tabs">
-    <Setter Property="Background" Value="{DynamicResource ThemeFormBgBrush}" />
+    <Setter Property="Background" Value="{x:Null}" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="Margin" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -30,17 +32,22 @@
     <Setter Property="FontSize" Value="{DynamicResource ThemeFontTab}" />
     <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabHeight}" />
-    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Width" Value="{x:Static ui:UiMetrics.TabFixedWidth}" />
     <Setter Property="Padding" Value="{x:Static ui:UiMetrics.TabItemPadding}" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="ClipToBounds" Value="True" />
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
     <Setter Property="BorderThickness" Value="1,1,1,0" />
     <Setter Property="Margin" Value="0,0,-1,0" />
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="{x:Static ui:UiMetrics.TabCornerRadius}" />
+  </Style>
+
+  <Style Selector="TabControl.app-tabs TabItem TextBlock">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
   </Style>
 
   <Style Selector="TabControl.app-tabs TabItem:selected">
@@ -48,7 +55,8 @@
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
     <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="BorderThickness" Value="1,1,1,0" />
-    <Setter Property="Margin" Value="0,0,-1,-1" />
+    <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabStripHeight}" />
+    <Setter Property="Margin" Value="0,0,-1,0" />
     <Setter Property="ZIndex" Value="1" />
   </Style>
 
@@ -56,6 +64,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
     <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="BorderThickness" Value="1,1,1,1" />
+    <Setter Property="Margin" Value="{x:Static ui:UiMetrics.TabUnselectedMargin}" />
   </Style>
 
   <Style Selector="TabControl.app-tabs TabItem /template/ ContentPresenter#PART_ContentPresenter">
@@ -64,11 +74,17 @@
 
   <Style Selector="TabControl.app-tabs TabItem:not(:selected) /template/ Border#PART_LayoutRoot">
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,1" />
+    <Setter Property="BoxShadow" Value="{DynamicResource ThemeTabBevelHighlight}" />
   </Style>
 
   <Style Selector="TabControl.app-tabs TabItem:not(:selected):pointerover /template/ Border#PART_LayoutRoot">
     <Setter Property="Background" Value="{DynamicResource ThemeTabHoverBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,1" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource ThemeTabBevelHighlight}" />
   </Style>
 
   <Style Selector="TabControl.app-tabs TabItem:not(:selected):pressed /template/ Border#PART_LayoutRoot">
@@ -77,6 +93,8 @@
 
   <Style Selector="TabControl.app-tabs TabItem:selected /template/ Border#PART_LayoutRoot, TabControl.app-tabs TabItem:selected:pointerover /template/ Border#PART_LayoutRoot">
     <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,0" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
   </Style>
 
@@ -132,29 +150,37 @@
     <Setter Property="FontSize" Value="{DynamicResource ThemeFontTab}" />
     <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabHeight}" />
-    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Width" Value="{x:Static ui:UiMetrics.TabFixedWidth}" />
     <Setter Property="Padding" Value="{x:Static ui:UiMetrics.TabItemPadding}" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="ClipToBounds" Value="True" />
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeTabBorderBrush}" />
     <Setter Property="BorderThickness" Value="1,1,1,0" />
     <Setter Property="Margin" Value="0,0,-1,0" />
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="{x:Static ui:UiMetrics.TabCornerRadius}" />
+  </Style>
+
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem TextBlock">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
   </Style>
 
   <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected">
     <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
     <Setter Property="BorderThickness" Value="1,1,1,0" />
-    <Setter Property="Margin" Value="0,0,-1,-1" />
+    <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabStripHeight}" />
+    <Setter Property="Margin" Value="0,0,-1,0" />
     <Setter Property="ZIndex" Value="1" />
   </Style>
 
   <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected)">
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource ThemeTabTextBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,1" />
+    <Setter Property="Margin" Value="{x:Static ui:UiMetrics.TabUnselectedMargin}" />
   </Style>
 
   <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected) /template/ ContentPresenter#PART_ContentPresenter">

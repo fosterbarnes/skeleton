@@ -301,7 +301,7 @@ internal static class OptionPanelBuilder
     private static Control CreateMultiSelect(SettingDefinition def)
     {
         var display = def.ChoiceLabels ?? def.Choices ?? [];
-        var panel = new StackPanel { Spacing = 2 };
+        var panel = new StackPanel { Spacing = UiMetrics.MultiRowItemSpacingPx };
         foreach (var label in display)
             panel.Children.Add(new CheckBox { Content = label });
 

@@ -9,11 +9,14 @@
         mc:Ignorable="d"
         x:Class="skeleton.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        TextOptions.TextRenderingMode="SubpixelAntialias"
+        TextOptions.TextHintingMode="Strong"
+        TextOptions.BaselinePixelAlignment="Aligned"
         Title="{x:Static skeleton:AppBranding.DisplayName}"
         Width="{x:Static ui:UiMetrics.DefaultWidth}"
         Height="{x:Static ui:UiMetrics.DefaultHeight}"
         MinWidth="{x:Static ui:UiMetrics.MinWidth}"
-        MinHeight="560">
+        MinHeight="{x:Static ui:UiMetrics.MinHeight}">
 
   <DockPanel>
     <Border Classes="app-status-bar" DockPanel.Dock="Bottom">
@@ -52,6 +55,14 @@
             Height="{x:Static ui:UiMetrics.TabStripHeight}"
             Background="{DynamicResource ThemeTabStripBgBrush}"
             ColumnDefinitions="78,*,Auto">
+        <Border x:Name="MacTabStripTrailingRule"
+                Grid.ColumnSpan="3"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Height="1"
+                Background="{DynamicResource ThemeTabBorderBrush}"
+                IsHitTestVisible="False"
+                IsVisible="False" />
         <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
           <ListBox x:Name="MacTabHeaders"
                    Grid.Column="0"
@@ -77,9 +88,10 @@
         </Grid>
       </Grid>
 
-      <Grid Grid.Row="1">
+      <Grid x:Name="TabContentHost" Grid.Row="1">
         <TabControl x:Name="MainTabs"
                     Classes="app-tabs"
+                    ZIndex="1"
                     ItemsSource="{Binding TabItems}"
                     SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}" />
 
@@ -107,6 +119,14 @@
           </ListBox>
         </Popup>
       </Grid>
+
+      <Border x:Name="TabStripTrailingRule"
+              Grid.Row="1"
+              VerticalAlignment="Top"
+              HorizontalAlignment="Left"
+              Height="1"
+              Background="{DynamicResource ThemeTabBorderBrush}"
+              IsHitTestVisible="False" />
     </Grid>
   </DockPanel>
 </Window>

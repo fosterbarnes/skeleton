@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -327,11 +328,26 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             _navByToken[def.Token] = (pending.Page, focusTarget);
         }
 
-        var compositeStack = new StackPanel { Spacing = 12 };
-        foreach (var child in compositeChildren)
-            compositeStack.Children.Add(child);
+        var compositeRow = new Grid
+        {
+            ColumnSpacing = 12,
+            ColumnDefinitions =
+            {
+                new ColumnDefinition(1, GridUnitType.Star),
+                new ColumnDefinition(GridLength.Auto),
+            },
+        };
+        for (var i = 0; i < compositeChildren.Count; i++)
+        {
+            var child = compositeChildren[i];
+            Grid.SetColumn(child, i);
+            child.VerticalAlignment = VerticalAlignment.Top;
+            if (i == 0)
+                child.HorizontalAlignment = HorizontalAlignment.Stretch;
+            compositeRow.Children.Add(child);
+        }
 
-        var compositeGroup = UiTheme.CreateGroupBox("Composite control examples", compositeStack);
+        var compositeGroup = UiTheme.CreateGroupBox("Composite control examples", compositeRow);
         compositeGroup.Margin = new Thickness(UiMetrics.TabContentPaddingPx, 0, UiMetrics.TabContentPaddingPx, 8);
         pending.Stack.Children.Add(compositeGroup);
         _generalCompositesPending = null;
@@ -569,7 +585,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 if (DebugLog.Enabled)
                     DebugLog.Write("Update", $"Startup update available: {result.LatestVersion}");
 
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _ = HandleStartupUpdateAsync(result, installDirectory));
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                    await HandleStartupUpdateAsync(result, installDirectory).ConfigureAwait(true));
             }
             catch (Exception ex)
             {
@@ -855,7 +872,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private async Task HandleStartupUpdateAsync(UpdateCheckResult result, string installDirectory)
     {
-        if (!UpdatePromptWindow.Prompt(result))
+        if (!await UpdatePromptWindow.PromptAsync(result).ConfigureAwait(true))
         {
             if (DebugLog.Enabled)
                 DebugLog.Write("Update", "Startup update declined by user");
@@ -864,7 +881,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            await UpdaterLauncher.LaunchInstallAsync(installDirectory).ConfigureAwait(true);
+            await UpdaterLauncher.LaunchInstallAsync(installDirectory).ConfigureAwait(false);
             Environment.Exit(0);
         }
         catch (Exception ex)

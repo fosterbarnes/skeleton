@@ -16,10 +16,10 @@
   <SolidColorBrush x:Key="ThemeTabStripBgBrush" Color="#F0F0F0" />
   <SolidColorBrush x:Key="ThemeTabHeaderBgBrush" Color="#E8E8E8" />
   <SolidColorBrush x:Key="ThemeTabSelectedBgBrush" Color="#F0F0F0" />
-  <SolidColorBrush x:Key="ThemeTabHoverBgBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="ThemeTabHoverBgBrush" Color="#E2E1E1" />
 
   <!-- Border roles -->
-  <SolidColorBrush x:Key="ThemeTabBorderBrush" Color="#ADADAD" />
+  <SolidColorBrush x:Key="ThemeTabBorderBrush" Color="#A0A0A0" />
   <SolidColorBrush x:Key="ThemeSearchBorderBrush" Color="#ADADAD" />
   <SolidColorBrush x:Key="ThemeCheckBoxBorderBrush" Color="#ADADAD" />
   <SolidColorBrush x:Key="ThemeNumberBoxBorderBrush" Color="#ADADAD" />
