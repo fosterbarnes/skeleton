@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:skeleton.UI">
 
-  <Style Selector="Button">
+  <Style Selector="Button:not(HyperlinkButton)">
     <Setter Property="FontSize" Value="{DynamicResource ThemeFontBody}" />
     <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.ControlHeight}" />
     <Setter Property="Height" Value="{x:Static ui:UiMetrics.ControlHeight}" />
@@ -14,10 +14,26 @@
     <Setter Property="Foreground" Value="{DynamicResource ThemeButtonForegroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeButtonBorderBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-  </Style>
 
-  <Style Selector="Button:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ThemeSurfaceBgBrush}" />
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonHoverBgBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
+
+    <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonHoverBgBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonPressedBgBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonPressedBgBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
   </Style>
 
   <Style Selector="Button.icon-btn">

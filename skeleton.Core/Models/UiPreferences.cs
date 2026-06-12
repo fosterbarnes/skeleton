@@ -18,6 +18,7 @@ public sealed class UiPreferences
     public int TokenFontSize { get; set; } = UiFontDefaults.Token;
     public string MainFontFamily { get; set; } = UiFontFamilies.DefaultMain;
     public string MonoFontFamily { get; set; } = UiFontFamilies.DefaultMono;
+    public MacTitleBarStyle MacTitleBarStyle { get; set; } = MacTitleBarStyle.Separate;
 
     public UiPreferences Clone() => new()
     {
@@ -37,5 +38,6 @@ public sealed class UiPreferences
         TokenFontSize = TokenFontSize,
         MainFontFamily = MainFontFamily,
         MonoFontFamily = MonoFontFamily,
+        MacTitleBarStyle = MacTitleBarStyle,
     };
 }

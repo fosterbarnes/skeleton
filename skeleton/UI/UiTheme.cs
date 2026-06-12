@@ -21,6 +21,7 @@ internal static class UiTheme
         public Color MutedText { get; init; }
         public Color Accent { get; init; }
         public Color Link { get; init; }
+        public Color LinkHover { get; init; }
         public Color MenuBack { get; init; }
 
         public Color? TabStripBg { get; init; }
@@ -63,6 +64,8 @@ internal static class UiTheme
         public Color? MultiSelectBoxBg { get; init; }
         public Color? StringBoxBg { get; init; }
         public Color? ButtonBg { get; init; }
+        public Color? ButtonHoverBg { get; init; }
+        public Color? ButtonPressedBg { get; init; }
         public Color? CompositeControlBoxBg { get; init; }
         public Color? EntryListBg { get; init; }
     }
@@ -76,8 +79,10 @@ internal static class UiTheme
         FormBg = Color.Parse("#F0F0F0"),
         SurfaceBg = Color.Parse("#E8E8E8"),
         MutedText = Color.Parse("#666666"),
+        TokenText = Color.Parse("#0066CC"),
         Accent = Color.Parse("#0078D4"),
         Link = Color.Parse("#0066CC"),
+        LinkHover = Color.Parse("#004E9A"),
         MenuBack = Color.Parse("#F0F0F0"),
 
         TabSelectedBg = Color.Parse("#F0F0F0"),
@@ -96,12 +101,14 @@ internal static class UiTheme
         FormBg = Color.Parse("#1E1E1E"),
         SurfaceBg = Color.Parse("#2D2D30"),
         MutedText = Color.Parse("#969696"),
+        TokenText = Color.Parse("#12A0FF"),
         Accent = Color.Parse("#007ACC"),
         Link = Color.Parse("#64B4FF"),
+        LinkHover = Color.Parse("#99CCFF"),
         MenuBack = Color.Parse("#282828"),
     };
 
-    private static readonly ThemePalette DraculaDarkPalette = new()
+    private static readonly ThemePalette DraculaPalette = new()
     {
         MainBorder = Color.Parse("#6272A4"),
         MainText = Color.Parse("#F8F8F2"),
@@ -110,35 +117,16 @@ internal static class UiTheme
         FormBg = Color.Parse("#282A36"),
         SurfaceBg = Color.Parse("#343746"),
         MutedText = Color.Parse("#6272A4"),
+        SettingText = Color.Parse("#FFFFFF"),
+        TokenText = Color.Parse("#FC7DC6"),
         Accent = Color.Parse("#BD93F9"),
         Link = Color.Parse("#8BE9FD"),
+        LinkHover = Color.Parse("#BD93F9"),
         MenuBack = Color.Parse("#191A21"),
     };
 
-    private static readonly ThemePalette DraculaLightPalette = new()
-    {
-        MainBorder = Color.Parse("#BD93F9"),
-        MainText = Color.Parse("#1F1F2F"),
-        InputBg = Color.Parse("#FCFCF8"),
-        FieldBg = Color.Parse("#FCFCF8"),
-        FormBg = Color.Parse("#F5F5F0"),
-        SurfaceBg = Color.Parse("#EEECE8"),
-        MutedText = Color.Parse("#6272A4"),
-        Accent = Color.Parse("#BD93F9"),
-        Link = Color.Parse("#506EB4"),
-        MenuBack = Color.Parse("#EEECE8"),
-    };
-
-    public static ThemeVariant ResolveThemeVariant(UiThemeKind theme)
-    {
-        var effective = EffectiveTheme(theme);
-        return effective switch
-        {
-            UiThemeKind.Light or UiThemeKind.DraculaLight => ThemeVariant.Light,
-            UiThemeKind.Dark or UiThemeKind.DraculaDark => ThemeVariant.Dark,
-            _ => ThemeVariant.Default,
-        };
-    }
+    public static ThemeVariant ResolveThemeVariant(UiThemeKind theme) =>
+        EffectiveTheme(theme) == UiThemeKind.Light ? ThemeVariant.Light : ThemeVariant.Dark;
 
     public static UiThemeKind EffectiveTheme(UiThemeKind theme)
     {
@@ -167,7 +155,7 @@ internal static class UiTheme
         ApplyFluentControlResources(app.Resources, palette);
         if (GetFluentTheme(app) is { } fluent)
         {
-            var paletteVariant = effective is UiThemeKind.Light or UiThemeKind.DraculaLight
+            var paletteVariant = effective is UiThemeKind.Light
                 ? ThemeVariant.Light
                 : ThemeVariant.Dark;
             ApplyFluentPalette(fluent, palette, paletteVariant);
@@ -176,8 +164,7 @@ internal static class UiTheme
 
     private static ThemePalette GetThemePalette(UiThemeKind effective) => effective switch
     {
-        UiThemeKind.DraculaDark => DraculaDarkPalette,
-        UiThemeKind.DraculaLight => DraculaLightPalette,
+        UiThemeKind.Dracula => DraculaPalette,
         UiThemeKind.Dark => VsDarkPalette,
         _ => LightPalette,
     };
@@ -200,6 +187,7 @@ internal static class UiTheme
         SetBrush(resources, ThemeBrushKeys.MutedText, p.MutedText);
         SetBrush(resources, ThemeBrushKeys.Accent, p.Accent);
         SetBrush(resources, ThemeBrushKeys.Link, p.Link);
+        SetBrush(resources, ThemeBrushKeys.LinkHover, p.LinkHover);
         SetBrush(resources, ThemeBrushKeys.MenuBack, p.MenuBack);
 
         SetBrush(resources, ThemeBrushKeys.TabStripBg, tabStripBg);
@@ -244,7 +232,10 @@ internal static class UiTheme
         SetBrush(resources, ThemeBrushKeys.ChoiceBoxBg, Role(p.ChoiceBoxBg, p.InputBg));
         SetBrush(resources, ThemeBrushKeys.MultiSelectBoxBg, Role(p.MultiSelectBoxBg, p.InputBg));
         SetBrush(resources, ThemeBrushKeys.StringBoxBg, Role(p.StringBoxBg, p.InputBg));
-        SetBrush(resources, ThemeBrushKeys.ButtonBg, Role(p.ButtonBg, p.InputBg));
+        var buttonBg = Role(p.ButtonBg, p.InputBg);
+        SetBrush(resources, ThemeBrushKeys.ButtonBg, buttonBg);
+        SetBrush(resources, ThemeBrushKeys.ButtonHoverBg, Role(p.ButtonHoverBg, Blend(buttonBg, p.Accent, 0.14)));
+        SetBrush(resources, ThemeBrushKeys.ButtonPressedBg, Role(p.ButtonPressedBg, Blend(buttonBg, p.Accent, 0.24)));
         SetBrush(resources, ThemeBrushKeys.CompositeControlBoxBg, Role(p.CompositeControlBoxBg, p.InputBg));
         SetBrush(resources, ThemeBrushKeys.EntryListBg, Role(p.EntryListBg, p.InputBg));
         SetBrush(resources, ThemeBrushKeys.RadioGroupBg, Colors.Transparent);
@@ -252,6 +243,17 @@ internal static class UiTheme
 
     private static void SetBrush(IResourceDictionary resources, string key, Color color) =>
         resources[key] = new SolidColorBrush(color);
+
+    private static Color Blend(Color background, Color foreground, double foregroundWeight)
+    {
+        var w = foregroundWeight;
+        var iw = 1.0 - w;
+        return Color.FromArgb(
+            255,
+            (byte)(background.R * iw + foreground.R * w),
+            (byte)(background.G * iw + foreground.G * w),
+            (byte)(background.B * iw + foreground.B * w));
+    }
 
     private static void ApplyFluentControlResources(IResourceDictionary resources, ThemePalette palette)
     {

@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using skeleton.Models;
 using skeleton.UI;
 using skeleton.ViewModels;
 
@@ -19,7 +20,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         AppIconLoader.TryApplyWindowIcon(this);
-        MacWindowChrome.TryApplyUnifiedTitleBar(this, MacChromeBar, MacTabHeaders, MainTabs, SearchBox);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
@@ -29,9 +29,26 @@ public partial class MainWindow : Window
         ViewModel.RestoreWindowBounds(this);
         UiTheme.ApplyWindowThemeVariant(this, ViewModel.SelectedTheme);
         ViewModel.ThemeChanged += theme => UiTheme.ApplyWindowTheme(this, theme);
+        ViewModel.MacTitleBarStyleChanged += ApplyMacTitleBarStyle;
+        ApplyMacTitleBarStyle();
         WireSearch();
         WireTabStripTrailingRule();
         ScheduleDeferredStartupWork();
+    }
+
+    private void ApplyMacTitleBarStyle()
+    {
+        MacWindowChrome.ApplyMode(
+            this,
+            ViewModel.MacTitleBarStyle,
+            MacChromeBar,
+            MacTabDragRegion,
+            MacTabHeaders,
+            MainTabs,
+            TabContentHost,
+            SearchBox,
+            SearchPopup);
+        SyncTabStripTrailingRules();
     }
 
     private void WireTabStripTrailingRule()
@@ -58,11 +75,11 @@ public partial class MainWindow : Window
 
     private void SyncTabStripTrailingRules()
     {
-        if (OperatingSystem.IsMacOS())
+        if (OperatingSystem.IsMacOS() && ViewModel.MacTitleBarStyle.UsesUnifiedChrome())
         {
             TabStripTrailingRule.IsVisible = false;
             MacTabStripTrailingRule.IsVisible = true;
-            SyncTabStripTrailingRule(MacTabStripTrailingRule, MacTabHeaders, MacChromeBar);
+            SyncTabStripTrailingRule(MacTabStripTrailingRule, MacTabHeaders, MacChromeBar, SearchBox);
             return;
         }
 
@@ -71,7 +88,11 @@ public partial class MainWindow : Window
         SyncTabStripTrailingRule(TabStripTrailingRule, MainTabs, TabContentHost);
     }
 
-    private static void SyncTabStripTrailingRule(Border ruleHost, ItemsControl itemsControl, Visual coordinateRoot)
+    private static void SyncTabStripTrailingRule(
+        Border ruleHost,
+        ItemsControl itemsControl,
+        Visual coordinateRoot,
+        Visual? trailingEndBefore = null)
     {
         var startX = 0.0;
         var baselineY = 0.0;
@@ -116,8 +137,26 @@ public partial class MainWindow : Window
         if (!measuredBaseline)
             baselineY = UiMetrics.TabStripHeight - 1 + UiMetrics.TabStripTrailingRuleBaselineOffsetPx;
 
-        var trailingWidth = coordinateRoot.Bounds.Width - startX;
-        ruleHost.IsVisible = trailingWidth > 0.5;
+        var endX = coordinateRoot.Bounds.Width;
+        if (trailingEndBefore?.TranslatePoint(new Point(), coordinateRoot) is { X: > 0 and var searchLeft })
+        {
+            if (searchLeft <= startX)
+            {
+                ruleHost.IsVisible = false;
+                return;
+            }
+
+            endX = searchLeft;
+        }
+
+        var trailingWidth = endX - startX;
+        if (trailingWidth <= 0.5)
+        {
+            ruleHost.IsVisible = false;
+            return;
+        }
+
+        ruleHost.IsVisible = true;
         ruleHost.Margin = new Thickness(startX, baselineY, 0, 0);
         ruleHost.Width = trailingWidth;
     }

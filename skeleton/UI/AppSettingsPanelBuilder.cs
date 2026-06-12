@@ -18,13 +18,14 @@ internal static class AppSettingsPanelBuilder
         };
 
         var themeRadios = new List<RadioButton>();
+        var titleBarRadios = new List<RadioButton>();
         var checkboxes = new Dictionary<string, CheckBox>(StringComparer.Ordinal);
 
         foreach (var group in SettingCatalog.ForCategory(SettingCategory.App)
                      .GroupBy(d => d.UiSection ?? string.Empty)
                      .OrderBy(g => SectionOrder(g.Key)))
         {
-            var sectionContent = BuildSection(group.Key, group.ToList(), tab, viewModel, themeRadios, checkboxes);
+            var sectionContent = BuildSection(group.Key, group.ToList(), tab, viewModel, themeRadios, titleBarRadios, checkboxes);
             if (sectionContent is null)
                 continue;
 
@@ -36,17 +37,18 @@ internal static class AppSettingsPanelBuilder
             sections.Children.Add(UiTheme.CreateGroupBox(title, sectionContent));
         }
 
-        viewModel.RegisterAppSettingsControls(themeRadios, checkboxes);
+        viewModel.RegisterAppSettingsControls(themeRadios, titleBarRadios, checkboxes);
         return sections;
     }
 
     private static int SectionOrder(string section) => section switch
     {
         SettingCatalog.AppSectionPreferences => 0,
-        SettingCatalog.AppSectionFonts => 1,
-        SettingCatalog.AppSectionTextSizes => 2,
-        SettingCatalog.AppSectionLogging => 3,
-        SettingCatalog.AppSectionUpdates => 4,
+        SettingCatalog.AppSectionTitleBar => 1,
+        SettingCatalog.AppSectionFonts => 2,
+        SettingCatalog.AppSectionTextSizes => 3,
+        SettingCatalog.AppSectionLogging => 4,
+        SettingCatalog.AppSectionUpdates => 5,
         _ => 99,
     };
 
@@ -56,11 +58,13 @@ internal static class AppSettingsPanelBuilder
         TabItem tab,
         MainWindowViewModel viewModel,
         List<RadioButton> themeRadios,
+        List<RadioButton> titleBarRadios,
         Dictionary<string, CheckBox> checkboxes)
     {
         return section switch
         {
             SettingCatalog.AppSectionPreferences => BuildPreferencesSection(defs, tab, viewModel, themeRadios, checkboxes),
+            SettingCatalog.AppSectionTitleBar => BuildTitleBarSection(defs, tab, viewModel, titleBarRadios),
             SettingCatalog.AppSectionFonts => BuildFontsSection(defs, tab, viewModel),
             SettingCatalog.AppSectionTextSizes => BuildTextSizesSection(defs, tab, viewModel),
             SettingCatalog.AppSectionLogging => BuildLoggingSection(defs, tab, viewModel, checkboxes),
@@ -130,6 +134,48 @@ internal static class AppSettingsPanelBuilder
         viewModel.RegisterNavTarget(tab, def.Token, themeRadioPanel);
 
         return themeRadioPanel;
+    }
+
+    private static Control? BuildTitleBarSection(
+        IReadOnlyList<SettingDefinition> defs,
+        TabItem tab,
+        MainWindowViewModel viewModel,
+        List<RadioButton> titleBarRadios)
+    {
+        if (!OperatingSystem.IsMacOS())
+            return null;
+
+        var def = defs.FirstOrDefault(d => d.Token == "ui_mac_title_bar");
+        if (def is null)
+            return null;
+
+        var radioPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = UiMetrics.ThemeRadioSpacingPx,
+        };
+
+        foreach (var (label, style) in viewModel.TitleBarStyleOptions)
+        {
+            var rb = new RadioButton
+            {
+                Content = label,
+                GroupName = "TitleBar",
+                Tag = style,
+                IsChecked = viewModel.MacTitleBarStyle == style,
+            };
+            rb.IsCheckedChanged += (_, _) =>
+            {
+                if (rb.IsChecked == true && rb.Tag is MacTitleBarStyle s)
+                    viewModel.MacTitleBarStyle = s;
+            };
+            radioPanel.Children.Add(rb);
+            titleBarRadios.Add(rb);
+        }
+
+        ToolTip.SetTip(radioPanel, SettingTooltipHelper.Build(def));
+        viewModel.RegisterNavTarget(tab, def.Token, radioPanel);
+        return radioPanel;
     }
 
     private static Control BuildFontsSection(

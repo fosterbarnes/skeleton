@@ -64,14 +64,15 @@
                 IsHitTestVisible="False"
                 IsVisible="False" />
         <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
+          <Border x:Name="MacTabDragRegion"
+                  Grid.ColumnSpan="2"
+                  Background="Transparent" />
           <ListBox x:Name="MacTabHeaders"
                    Grid.Column="0"
                    Classes="mac-tab-headers"
                    ItemsSource="{Binding TabItems}"
                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
                    HorizontalAlignment="Left"
-                   Background="Transparent"
-                   BorderThickness="0"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ListBox.ItemsPanel>

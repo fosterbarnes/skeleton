@@ -87,13 +87,9 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 |:---:|
 | ![Dark](./.resources/scr/8.png) |
 
-| <h3>Dracula Light</h3> |
+| <h3>Dracula</h3> |
 |:---:|
-| ![Dracula Light](./.resources/scr/9.png) |
-
-| <h3>Dracula Dark</h3> |
-|:---:|
-| ![Dracula Dark](./.resources/scr/10.png) |
+| ![Dracula](./.resources/scr/10.png) |
 
 </details>
 

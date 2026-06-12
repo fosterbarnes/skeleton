@@ -12,6 +12,7 @@ internal static class ThemeBrushKeys
     public const string MutedText = "ThemeMutedTextBrush";
     public const string Accent = "ThemeAccentBrush";
     public const string Link = "ThemeLinkBrush";
+    public const string LinkHover = "ThemeLinkHoverBrush";
     public const string MenuBack = "ThemeMenuBackBrush";
 
     // Tab state backgrounds
@@ -60,6 +61,8 @@ internal static class ThemeBrushKeys
     public const string MultiSelectBoxBg = "ThemeMultiSelectBoxBgBrush";
     public const string StringBoxBg = "ThemeStringBoxBgBrush";
     public const string ButtonBg = "ThemeButtonBgBrush";
+    public const string ButtonHoverBg = "ThemeButtonHoverBgBrush";
+    public const string ButtonPressedBg = "ThemeButtonPressedBgBrush";
     public const string CompositeControlBoxBg = "ThemeCompositeControlBoxBgBrush";
     public const string EntryListBg = "ThemeEntryListBgBrush";
     public const string RadioGroupBg = "ThemeRadioGroupBgBrush";

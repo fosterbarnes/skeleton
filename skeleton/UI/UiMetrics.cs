@@ -8,11 +8,15 @@ internal static class UiMetrics
     public const int DefaultWidthWindows = 820;
     public const int DefaultWidthMac = 700;
     public const int DefaultHeightWindows = 649;
-    public const int DefaultHeightMac = 725;
+    public const int DefaultHeightMac = 635;
+    public const int MinWidthWindows = 820;
+    public const int MinWidthMac = 700;
+    public const int MinHeightWindows = 200;
+    public const int MinHeightMac = 200;
     public static double DefaultWidth => OperatingSystem.IsMacOS() ? DefaultWidthMac : DefaultWidthWindows;
     public static double DefaultHeight => OperatingSystem.IsMacOS() ? DefaultHeightMac : DefaultHeightWindows;
-    public static double MinWidth => DefaultWidth;
-    public const double MinHeight = 200;
+    public static double MinWidth => OperatingSystem.IsMacOS() ? MinWidthMac : MinWidthWindows;
+    public static double MinHeight => OperatingSystem.IsMacOS() ? MinHeightMac : MinHeightWindows;
     public const int TokenColWidth = 268;
     public const double ControlHeight = 23;
     public const double ButtonHeight = ControlHeight;
@@ -108,9 +112,6 @@ internal static class UiMetrics
         new(0, SearchBoxBottomFromStripTop - SearchBoxHeight, 8, 0);
 
     public static Thickness TabStripItemsMargin => new(4, 0, 0, 0);
-
-    public static Thickness MacChromeSearchMargin =>
-        new(0, SearchBoxBottomFromStripTop - SearchBoxHeight, 8, 0);
 
     public static double SearchBoxBottomFromStripTop =>
         (TabStripHeight - ControlHeight) / 2.0 + ControlHeight + SearchBoxBottomInsetPx;

@@ -1,3 +1,15 @@
- (v0.4.1) 
+Platform specific & other fixes (v0.4.1) 
 
--
+macOS:
+- Fix inconsistent search bar UI placement per-tab
+- Allow clicking and dragging window on tab-bar
+- Add option to combine or separate title and tab bars
+- Adjust window size defaults and minimum
+
+General:
+- Adjust some theme colors (buttons, tokens, etc.)
+- Fix settings that don't stay applied on next app launch after applying
+- Add debug logging for all demo settings
+- Replace repo hyperlink in 'About'
+- Remove 'Dracula Light' theme. It sucks
+- Rename 'Dracula Dark' theme to 'Dracula'

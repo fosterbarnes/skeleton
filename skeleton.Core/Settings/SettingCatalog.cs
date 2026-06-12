@@ -61,6 +61,7 @@ public sealed class SettingDefinition
 public static class SettingCatalog
 {
     public const string AppSectionPreferences = "Preferences";
+    public const string AppSectionTitleBar = "Title bar";
     public const string AppSectionFonts = "Fonts";
     public const string AppSectionTextSizes = "Text size";
     public const string AppSectionUpdates = "Updates";
@@ -94,11 +95,15 @@ public static class SettingCatalog
         Define("ui_theme", "App theme", SettingCategory.App, SettingControlKind.Choice,
             help: "Application color theme.",
             uiSection: AppSectionPreferences,
-            choices: ["System", "Light", "Dark", "DraculaLight", "DraculaDark"],
-            choiceLabels: ["System", "Light", "Dark", "Dracula Light", "Dracula Dark"]),
+            choices: ["System", "Light", "Dark", "Dracula"]),
         Define("ui_remember_last_tab", "Remember last selected tab", SettingCategory.App, SettingControlKind.Boolean,
             help: "Restore the selected tab on startup.",
             uiSection: AppSectionPreferences),
+        Define("ui_mac_title_bar", "Title bar layout", SettingCategory.App, SettingControlKind.Choice,
+            help: "Combined merges tabs into the window title bar. Separate uses a standard title bar with tabs below, similar to Windows.",
+            uiSection: AppSectionTitleBar,
+            choices: ["separate", "combined"],
+            choiceLabels: ["Separate title & tab bar", "Combined title & tab bar"]),
         Define("ui_font_family_main", "General font", SettingCategory.App, SettingControlKind.Choice,
             help: "Font for labels, buttons, tabs, and most UI text.",
             uiSection: AppSectionFonts,

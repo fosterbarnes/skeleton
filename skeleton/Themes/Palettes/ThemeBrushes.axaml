@@ -10,6 +10,7 @@
   <SolidColorBrush x:Key="ThemeMutedTextBrush" Color="#666666" />
   <SolidColorBrush x:Key="ThemeAccentBrush" Color="#0078D4" />
   <SolidColorBrush x:Key="ThemeLinkBrush" Color="#0066CC" />
+  <SolidColorBrush x:Key="ThemeLinkHoverBrush" Color="#004E9A" />
   <SolidColorBrush x:Key="ThemeMenuBackBrush" Color="#F0F0F0" />
 
   <!-- Tab state backgrounds -->
@@ -35,7 +36,7 @@
   <SolidColorBrush x:Key="ThemeTabTextBrush" Color="#000000" />
   <SolidColorBrush x:Key="ThemeSearchTextBrush" Color="#000000" />
   <SolidColorBrush x:Key="ThemeSettingTextBrush" Color="#000000" />
-  <SolidColorBrush x:Key="ThemeTokenTextBrush" Color="#666666" />
+  <SolidColorBrush x:Key="ThemeTokenTextBrush" Color="#0066CC" />
   <SolidColorBrush x:Key="ThemeNumberBoxTextBrush" Color="#000000" />
   <SolidColorBrush x:Key="ThemeChoiceBoxTextBrush" Color="#000000" />
   <SolidColorBrush x:Key="ThemeMultiSelectBoxTextBrush" Color="#000000" />
@@ -55,6 +56,8 @@
   <SolidColorBrush x:Key="ThemeMultiSelectBoxBgBrush" Color="#FFFFFF" />
   <SolidColorBrush x:Key="ThemeStringBoxBgBrush" Color="#FFFFFF" />
   <SolidColorBrush x:Key="ThemeButtonBgBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="ThemeButtonHoverBgBrush" Color="#DBECF9" />
+  <SolidColorBrush x:Key="ThemeButtonPressedBgBrush" Color="#C1DEF4" />
   <SolidColorBrush x:Key="ThemeCompositeControlBoxBgBrush" Color="#FFFFFF" />
   <SolidColorBrush x:Key="ThemeEntryListBgBrush" Color="#FFFFFF" />
   <SolidColorBrush x:Key="ThemeRadioGroupBgBrush" Color="Transparent" />

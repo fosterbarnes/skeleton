@@ -20,6 +20,7 @@ public sealed class AppConfigStore
 
     private readonly string _baseDirectory;
     private readonly string _uiPreferencesFilePath;
+    private readonly string _catalogSettingsFilePath;
 
     public AppConfigStore()
     {
@@ -27,6 +28,7 @@ public sealed class AppConfigStore
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             AppBranding.Slug);
         _uiPreferencesFilePath = Path.Combine(_baseDirectory, "ui.json");
+        _catalogSettingsFilePath = Path.Combine(_baseDirectory, "settings.json");
     }
 
     public UiPreferences LoadUiPreferences()
@@ -39,6 +41,7 @@ public sealed class AppConfigStore
         if (token is not JObject jo)
             return new UiPreferences();
 
+        MigrateTheme(jo);
         var prefs = jo.ToObject<UiPreferences>(JsonSerializer.Create(SerializerSettings)) ?? new UiPreferences();
         NormalizeLegacy(prefs, jo);
         ClampFontSizes(prefs);
@@ -57,16 +60,29 @@ public sealed class AppConfigStore
         AtomicFile.WriteAllBytes(_uiPreferencesFilePath, Encoding.UTF8.GetBytes(json));
     }
 
+    public CatalogSettingsDocument LoadCatalogSettings()
+    {
+        if (!File.Exists(_catalogSettingsFilePath))
+            return new CatalogSettingsDocument();
+
+        var json = SafeFileIO.ReadAllText(_catalogSettingsFilePath, SafeFileIO.MaxJsonBytes);
+        return JsonConvert.DeserializeObject<CatalogSettingsDocument>(json, SerializerSettings)
+            ?? new CatalogSettingsDocument();
+    }
+
+    public void SaveCatalogSettings(CatalogSettingsDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+
+        Directory.CreateDirectory(_baseDirectory);
+        var json = JsonConvert.SerializeObject(document, SerializerSettings);
+        AtomicFile.WriteAllBytes(_catalogSettingsFilePath, Encoding.UTF8.GetBytes(json));
+    }
+
     private static void NormalizeLegacy(UiPreferences prefs, JObject jo)
     {
         if (jo["Theme"] is JToken { Type: JTokenType.Integer } legacyInt)
             prefs.Theme = MapLegacyThemeInt(legacyInt.Value<int>());
-
-        if (jo["Theme"] is JToken { Type: JTokenType.String } themeString
-            && string.Equals(themeString.Value<string>(), "Dracula", StringComparison.OrdinalIgnoreCase))
-        {
-            prefs.Theme = UiThemeKind.DraculaLight;
-        }
 
         if (jo["DarkMode"] is JToken { Type: JTokenType.Boolean } darkMode
             && darkMode.Value<bool>()
@@ -95,12 +111,32 @@ public sealed class AppConfigStore
         _ => null
     };
 
+    private static void MigrateTheme(JObject jo)
+    {
+        if (jo["Theme"] is not JToken themeToken)
+            return;
+
+        switch (themeToken.Type)
+        {
+            case JTokenType.String:
+                var name = themeToken.Value<string>();
+                if (string.Equals(name, "DraculaLight", StringComparison.OrdinalIgnoreCase))
+                    jo["Theme"] = nameof(UiThemeKind.Light);
+                else if (string.Equals(name, "DraculaDark", StringComparison.OrdinalIgnoreCase))
+                    jo["Theme"] = nameof(UiThemeKind.Dracula);
+                break;
+            case JTokenType.Integer when themeToken.Value<int>() == 4:
+                jo["Theme"] = nameof(UiThemeKind.Dracula);
+                break;
+        }
+    }
+
     private static UiThemeKind MapLegacyThemeInt(int value) => value switch
     {
         0 => UiThemeKind.Light,
         1 => UiThemeKind.Dark,
-        2 => UiThemeKind.DraculaLight,
-        3 => UiThemeKind.DraculaDark,
+        2 => UiThemeKind.Light,
+        3 => UiThemeKind.Dracula,
         _ => UiThemeKind.System
     };
 

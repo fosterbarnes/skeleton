@@ -139,6 +139,7 @@
   </Style>
 
   <Style Selector="ListBox.mac-tab-headers">
+    <Setter Property="IsHitTestVisible" Value="False" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="0" />
@@ -146,7 +147,6 @@
   </Style>
 
   <Style Selector="ListBox.mac-tab-headers ListBoxItem">
-    <Setter Property="IsHitTestVisible" Value="False" />
     <Setter Property="FontSize" Value="{DynamicResource ThemeFontTab}" />
     <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="MinHeight" Value="{x:Static ui:UiMetrics.TabHeight}" />
@@ -187,11 +187,7 @@
     <Setter Property="Background" Value="{DynamicResource ThemeTabHeaderBgBrush}" />
   </Style>
 
-  <Style Selector="ListBox.mac-tab-headers ListBoxItem:not(:selected):pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ThemeTabHoverBgBrush}" />
-  </Style>
-
-  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.mac-tab-headers ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="ListBox.mac-tab-headers ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource ThemeTabSelectedBgBrush}" />
   </Style>
 

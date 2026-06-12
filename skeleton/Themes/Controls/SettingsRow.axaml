@@ -68,10 +68,4 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
-  <Style Selector="TextBlock.about-link">
-    <Setter Property="Foreground" Value="{DynamicResource ThemeLinkBrush}" />
-    <Setter Property="TextDecorations" Value="Underline" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-
 </Styles>

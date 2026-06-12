@@ -22,12 +22,7 @@ internal static class AboutTabBuilder
 
         var version = new SelectableTextBlock { Text = viewModel.VersionText };
 
-        var repo = new TextBlock
-        {
-            Text = viewModel.RepoUrl,
-            Classes = { "about-link" },
-        };
-        repo.PointerPressed += (_, _) => viewModel.OpenRepoCommand.Execute(null);
+        var repo = UiLinks.Command(viewModel.RepoUrl, viewModel.OpenRepoCommand);
 
         var checkBtn = new Button { Content = "Check for updates" };
         checkBtn.Click += (_, _) => viewModel.CheckForUpdatesManualCommand.Execute(null);
