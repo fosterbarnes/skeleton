@@ -22,7 +22,7 @@ $quickReference['linuxAmd64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName 
 $quickReference['linuxArm64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName -Architecture 'arm64')"
 
 $refLines = ($quickReference.GetEnumerator() | ForEach-Object { "$($_.Key) = $($_.Value)" }) -join "`n`n"
-$readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --.*?-->', "<!-- Quick Reference --`n$refLines`n-->")
+$readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --?>?\s*.*?\s*-->', "<!-- Quick Reference --`n$refLines`n-->")
 
 $svgSections = @(
     @{
@@ -33,7 +33,7 @@ $svgSections = @(
         }
     }
     @{
-        Pattern = '(?s)(?<section>### macOS\b.*?(?=### Linux))'
+        Pattern = '(?s)(?<section>### macOS\b.*?(?=### Debian Linux))'
         Links = @{ 'download_appleIntel.svg' = 'osxX64Portable'; 'download_appleArm.svg' = 'osxArm64Portable' }
     }
 )
@@ -45,19 +45,21 @@ foreach ($section in $svgSections) {
     foreach ($svg in $section.Links.Keys) {
         $url = $quickReference[$section.Links[$svg]]
         if ([string]::IsNullOrWhiteSpace($url)) { continue }
-        $updated = $updated -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$([regex]::Escape($svg))`")", "`${1}$url`${2}"
+        $svgPattern = [regex]::Escape($svg)
+        $updated = [regex]::Replace($updated, "(?s)(<a href=`")[^`"]+(`">\s*<img src=`"\./\.resources/svg/$svgPattern`")", "`${1}$url`${2}")
     }
     $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 
-if ($readmeUpdated -match '(?s)(?<section>### Linux \(Debian\)\b.*?(?=## Tabs))') {
+if ($readmeUpdated -match '(?s)(?<section>### Debian Linux\b.*?(?=## Tabs))') {
     $text = $Matches['section']
     $amd64Deb = [IO.Path]::GetFileName($quickReference['linuxAmd64Deb'])
     $arm64Deb = [IO.Path]::GetFileName($quickReference['linuxArm64Deb'])
     $updated = $text
+    $updated = [regex]::Replace($updated, 'wget https://github\.com/[^/\s]+/[^/\s]+/releases/download/v[\d.]+/skeleton_v[\d.]+_debian-amd64\.deb', "wget $($quickReference['linuxAmd64Deb'])")
+    $updated = [regex]::Replace($updated, 'wget https://github\.com/[^/\s]+/[^/\s]+/releases/download/v[\d.]+/skeleton_v[\d.]+_debian-arm64\.deb', "wget $($quickReference['linuxArm64Deb'])")
     $updated = [regex]::Replace($updated, 'sudo apt install \./skeleton_v[\d.]+_debian-amd64\.deb', "sudo apt install ./$amd64Deb")
-    $updated = [regex]::Replace($updated, '\[skeleton_v[\d.]+_debian-amd64\.deb\]\([^)]+\)', "[$amd64Deb]($($quickReference['linuxAmd64Deb']))")
-    $updated = [regex]::Replace($updated, '\[skeleton_v[\d.]+_debian-arm64\.deb\]\([^)]+\)', "[$arm64Deb]($($quickReference['linuxArm64Deb']))")
+    $updated = [regex]::Replace($updated, 'sudo apt install \./skeleton_v[\d.]+_debian-arm64\.deb', "sudo apt install ./$arm64Deb")
     $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 

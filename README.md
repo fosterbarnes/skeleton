@@ -12,54 +12,66 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 
 ### Windows
 
-<table border="0">
-<tbody>
-<tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_x64.exe"><img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_x86.exe"><img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
-</tr>
-</tbody>
-</table>
+<table border="0"><tbody><tr>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_x64.exe">
+<img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_x86.exe">
+<img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonInstaller_v0.4.2_arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
+</tr></tbody></table>
 
-<table border="0">
-<tbody>
-<tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_x64.zip"><img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_x86.zip"><img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_arm64.zip"><img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
-</tr>
-</tbody>
-</table>
+<table border="0"><tbody><tr>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_x64.zip">
+<img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_x86.zip">
+<img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeletonPortable_v0.4.2_arm64.zip">
+<img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+</tr></tbody></table>
 
 ### macOS
 
-<table border="0">
-<tbody>
-<tr>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_macOS-intel.zip"><img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
-<td align="center" valign="top"><a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
-</tr>
-</tbody>
-</table>
+<table border="0"><tbody><tr>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_macOS-intel.zip">
+<img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
+<td align="center" valign="top">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+</tr></tbody></table>
 
-### Linux (Debian)
+### Debian Linux
 
-Install the [.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian) from the Microsoft package repository, then install the matching `.deb` from `publish/` with `apt` (do not run the file directly):
+#### Install dependencies: 
+
+[.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian)
 
 ```bash
-cd publish
-sudo apt install ./skeleton_v0.4.1_debian-amd64.deb
+wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
 ```
 
-Use `-debian-arm64` instead of `-debian-amd64` on arm64 systems.
+#### Install skeleton:
 
-| Architecture | Download |
-|---|---|
-| x64 (amd64) | [skeleton_v0.4.1_debian-amd64.deb](https://github.com/fosterbarnes/skeleton/releases/download/v0.4.1/skeleton_v0.4.1_debian-amd64.deb) |
-| arm64 | [skeleton_v0.4.1_debian-arm64.deb](https://github.com/fosterbarnes/skeleton/releases/download/v0.4.1/skeleton_v0.4.1_debian-arm64.deb) |
+x64 (amd64)
 
-Build on Debian via `./.scripts/.buildAll.ps1` (requires PowerShell 7 and `dpkg-dev` for `dpkg-deb`). In-app updater is not available on Linux in v1.
+```bash
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_debian-amd64.deb
+sudo apt install ./skeleton_v0.4.2_debian-amd64.deb
+```
+
+(arm64)
+
+```bash
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_debian-arm64.deb
+sudo apt install ./skeleton_v0.4.2_debian-arm64.deb
+```
 
 ## Tabs
 
@@ -113,12 +125,12 @@ Build on Debian via `./.scripts/.buildAll.ps1` (requires PowerShell 7 and `dpkg-
 
 ## Compatibility
 
-| Platform  | Architecture   | Status |
-|------------|-----------------|--------|
-| Windows 10 | x86, x64, arm64 | Supported |
-| Windows 11 | x86, x64, arm64 | Supported |
-| macOS      | x64, arm64      | Supported |
-| Linux (Debian) | x64, arm64 | Supported |
+| Platform  | Architecture
+|------------|-----------------|
+| Windows 10 | x86, x64, arm64
+| Windows 11 | x86, x64, arm64
+| macOS      | x64, arm64
+| Debian Linux | x64, arm64
 
 <!-- Quick Reference --
 version = 0.4.2
