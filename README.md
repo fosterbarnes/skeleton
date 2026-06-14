@@ -45,11 +45,9 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 <a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr></tbody></table>
 
-### Debian Linux
+### Debian Linux (Debian 12-13, Ubuntu 24.04-26.04)
 
 #### Install dependencies: 
-
-
 
 Add the Microsoft package signing key to your list of trusted keys and add the package repository, then install .NET 10 runtime
 
@@ -64,14 +62,14 @@ Reference: [.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/insta
 
 #### Install skeleton:
 
-x64 (amd64)
+amd64:
 
 ```bash
 wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_debian-amd64.deb
 sudo apt install ./skeleton_v0.4.2_debian-amd64.deb
 ```
 
-(arm64)
+arm64:
 
 ```bash
 wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.2/skeleton_v0.4.2_debian-arm64.deb
