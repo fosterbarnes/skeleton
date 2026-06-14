@@ -6,7 +6,7 @@
     <RootNamespace>skeleton</RootNamespace>
     <AssemblyName>skeleton</AssemblyName>
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
     <ApplicationManifest Condition="$(_IsWinRid)">app.manifest</ApplicationManifest>
     <ApplicationIcon Condition="$(_IsWinRid)">../.resources/icon/skeleton.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -50,7 +50,7 @@
     <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
   </ItemGroup>
 
-  <Target Name="PublishUpdaterToOutput" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND Exists('$(UpdaterProjectPath)')">
+  <Target Name="PublishUpdaterToOutput" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND Exists('$(UpdaterProjectPath)') AND !$([MSBuild]::IsOSPlatform('Linux'))">
     <PropertyGroup>
       <_UpdaterRid Condition="'$(Platform)' == 'x86'">win-x86</_UpdaterRid>
       <_UpdaterRid Condition="'$(Platform)' == 'x64' and $([MSBuild]::IsOSPlatform('Windows'))">win-x64</_UpdaterRid>

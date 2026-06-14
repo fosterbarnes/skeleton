@@ -6,7 +6,7 @@
     <RootNamespace>skeleton.Updater</RootNamespace>
     <AssemblyName>updater</AssemblyName>
     <Platforms>AnyCPU;x64;x86;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
     <ApplicationManifest Condition="$(_IsWinRid)">app.manifest</ApplicationManifest>
     <ApplicationIcon Condition="$(_IsWinRid)">../.resources/icon/skeleton.ico</ApplicationIcon>
     <Product>skeleton Updater</Product>

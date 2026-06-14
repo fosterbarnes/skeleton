@@ -7,13 +7,13 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $runHelp = @"
-.run.ps1 [$(if ($IsMacOS) { '--x64 | --arm64 | --portable' } else { '--x86 | --x64 | --arm64 | --portable' })] [-- app args...]
+.run.ps1 [$(if ($IsMacOS -or $IsLinux) { '--x64 | --arm64 | --portable' } else { '--x86 | --x64 | --arm64 | --portable' })] [-- app args...]
 While running: q = quit, r = restart (fresh dotnet run)
 "@
 
 function Get-Platform([string]$f) {
     switch -Regex ($f) {
-        '(?i)^(--x86|--86|-x86|-86)$' { if (-not $IsMacOS) { return @{ Tag = 'x86'; MsBuild = 'x86' } }; break }
+        '(?i)^(--x86|--86|-x86|-86)$' { if (-not $IsMacOS -and -not $IsLinux) { return @{ Tag = 'x86'; MsBuild = 'x86' } }; break }
         '(?i)^(--x64|--64|-x64|-64)$' { return @{ Tag = 'x64'; MsBuild = 'x64' } }
         '(?i)^(--arm64|--arm|-arm64|-arm)$' { return @{ Tag = 'arm64'; MsBuild = 'ARM64' } }
         '(?i)^(--portable|--p|-portable|-p|portable)$' { return @{ Tag = 'portable'; MsBuild = 'AnyCPU' } }
@@ -30,7 +30,10 @@ if ($Help) { Write-Host $runHelp; exit }
 . (Join-Path $PSScriptRoot 'scriptHelper.ps1')
 Set-Location -LiteralPath $repoRoot
 
-$plat = Get-Platform ($(if ($IsMacOS) { '--arm64' } else { 'portable' }))
+$defaultRunFlag = if ($IsMacOS -or $IsLinux) {
+    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { '--arm64' } else { '--x64' }
+} else { 'portable' }
+$plat = Get-Platform $defaultRunFlag
 $appArgs = @()
 
 foreach ($a in $AppLaunchArgs + $args) {
@@ -49,7 +52,12 @@ while ($true) {
     }
     $dotnetArgs = @('run', '--project', $csproj, '--framework', $dotnetFramework, '-c', 'Release', "-p:Platform=$($plat.MsBuild)")
     if ($appArgs.Count) { $dotnetArgs += '--', $appArgs }
-    $proc = Start-Process dotnet -ArgumentList $dotnetArgs -WorkingDirectory $repoRoot -NoNewWindow -PassThru
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new('dotnet')
+    $startInfo.WorkingDirectory = $repoRoot
+    $startInfo.UseShellExecute = $false
+    foreach ($arg in $dotnetArgs) { [void]$startInfo.ArgumentList.Add($arg) }
+    $proc = [System.Diagnostics.Process]::Start($startInfo)
+    if ($null -eq $proc) { throw 'Could not start dotnet.' }
     Write-Host "$projectName running. q=quit, r=restart."
     $act = $null
     while (-not $proc.HasExited -and -not $act) {

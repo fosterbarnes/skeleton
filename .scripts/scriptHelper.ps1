@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'copyToOS.ps1')
 
-$repoRoot = (Split-Path $PSScriptRoot -Parent) -replace '\\', '/'
+$repoRoot = Resolve-CanonicalRepoRoot (Split-Path $PSScriptRoot -Parent)
 $projectName = 'skeleton'
 $csproj = Join-RepoPath $repoRoot $projectName "$projectName.csproj"
 $dotnetFramework = 'net10.0'
@@ -28,6 +28,8 @@ $installerWizardLargeImage = Join-RepoPath $repoRoot '.resources' 'icon' 'instal
 $macInfoPlist = Join-RepoPath $repoRoot '.resources' 'mac' 'Info.plist'
 $macEntitlements = Join-RepoPath $repoRoot '.resources' 'mac' 'Entitlements.plist'
 $macAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.icns"
+$linuxDebResources = Join-RepoPath $repoRoot '.resources' 'linux' 'debian'
+$linuxAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' 'skeleton256.png'
 $buildNotes = Join-RepoPath $repoRoot '.md' 'buildNotes.txt'
 $publishFolder = Join-RepoPath $repoRoot 'publish'
 $updater = Join-RepoPath $repoRoot '.updater'
@@ -42,6 +44,10 @@ $platformTargetDefs = @{
     Mac = @(
         @{ Architecture = 'arm64'; RuntimeIdentifier = 'osx-arm64'; PublishDir = 'osx-arm64'; AssetTag = 'macOS-arm' }
         @{ Architecture = 'x64';   RuntimeIdentifier = 'osx-x64';   PublishDir = 'osx-x64';   AssetTag = 'macOS-intel' }
+    )
+    Linux = @(
+        @{ Architecture = 'arm64'; RuntimeIdentifier = 'linux-arm64'; PublishDir = 'linux-arm64'; DebTag = 'arm64' }
+        @{ Architecture = 'x64';   RuntimeIdentifier = 'linux-x64';   PublishDir = 'linux-x64';   DebTag = 'amd64' }
     )
 }
 
@@ -59,6 +65,11 @@ function Expand-PlatformTarget {
         $t.HostPath = Join-RepoPath $bin $projectName
         $t.AppBundlePath = Join-RepoPath $bin "$projectName.app"
     }
+    if ($Def.DebTag) {
+        $t.DebTag = $Def.DebTag
+        $t.HostPath = Join-RepoPath $bin $projectName
+        $t.DebArchitecture = $Def.DebTag
+    }
     if ($Def.IssSuffix) {
         $t.ExePath = Join-RepoPath $bin "$projectName.exe"
         $t.InstallerName = "$projectName-$($Def.Architecture)-installer.exe"
@@ -70,19 +81,24 @@ function Expand-PlatformTarget {
 $expanded = @{
     Windows = @($platformTargetDefs.Windows | ForEach-Object { Expand-PlatformTarget $_ })
     Mac     = @($platformTargetDefs.Mac | ForEach-Object { Expand-PlatformTarget $_ })
+    Linux   = @($platformTargetDefs.Linux | ForEach-Object { Expand-PlatformTarget $_ })
 }
-$buildTargets = $expanded[$(if ($IsMacOS) { 'Mac' } else { 'Windows' })]
+$hostPlatformKey = if ($IsMacOS) { 'Mac' } elseif ($IsLinux) { 'Linux' } else { 'Windows' }
+$buildTargets = $expanded[$hostPlatformKey]
 $winReleaseTargets = @($expanded.Windows | ForEach-Object { @{ Architecture = $_.Architecture; BinFolder = $_.BinFolder; InstallerName = $_.InstallerName } })
 $macReleaseTargets = @($expanded.Mac | ForEach-Object { @{ Architecture = $_.Architecture; AssetTag = $_.AssetTag; AppBundlePath = $_.AppBundlePath } })
+$linuxReleaseTargets = @($expanded.Linux | ForEach-Object { @{ Architecture = $_.Architecture; DebTag = $_.DebTag; BinFolder = $_.BinFolder } })
 
-$publishStripFiles = @(
+$publishStripCommon = @(
     'Avalonia.DesignerSupport.dll', 'Avalonia.Remote.Protocol.dll',
-    'Avalonia.FreeDesktop.dll', 'Avalonia.FreeDesktop.AtSpi.dll',
-    'Avalonia.X11.dll', 'Tmds.DBus.Protocol.dll'
-) + $(if ($IsMacOS) {
+    "$projectName.ico", "${projectName}256.png", 'VersionBuild'
+)
+$publishStripFiles = $publishStripCommon + $(if ($IsMacOS) {
     @('Avalonia.Win32.Automation.dll', 'Avalonia.Win32.dll')
+} elseif ($IsLinux) {
+    @('Avalonia.Win32.Automation.dll', 'Avalonia.Win32.dll', 'Avalonia.Native.dll')
 } else {
-    @('Avalonia.Native.dll')
+    @('Avalonia.Native.dll', 'Avalonia.FreeDesktop.dll', 'Avalonia.FreeDesktop.AtSpi.dll', 'Avalonia.X11.dll', 'Tmds.DBus.Protocol.dll')
 })
 
 function Get-IssDefinePattern([string]$Name) { "#define\s+$([regex]::Escape($Name))\s+`"([^`"]*)`"" }
@@ -133,12 +149,12 @@ function Resolve-BuildArchitecture {
         switch -Regex ($a.Trim()) {
             '(?i)^(--arm64|-arm64)$' { $resolved += 'arm64'; break }
             '(?i)^(--x64|-x64)$' { $resolved += 'x64'; break }
-            '(?i)^(--x86|-x86)$' { if (-not $IsMacOS) { $resolved += 'x86' }; break }
-            '(?i)^(--86|-86)$' { if (-not $IsMacOS) { $resolved += 'x86' }; break }
+            '(?i)^(--x86|-x86)$' { if (-not $IsMacOS -and -not $IsLinux) { $resolved += 'x86' }; break }
+            '(?i)^(--86|-86)$' { if (-not $IsMacOS -and -not $IsLinux) { $resolved += 'x86' }; break }
             '(?i)^(--arm|-arm)$' { $hasArm = $true; break }
             '(?i)^(--64|-64)$' { $has64Flag = $true; break }
             default {
-                $flags = if ($IsMacOS) { '-arm64, -x64 (or -arm, -arm -64, -64)' } else { '-arm64, -x64, -x86 (or -arm, -arm -64, -64, -86)' }
+                $flags = if ($IsMacOS -or $IsLinux) { '-arm64, -x64 (or -arm, -arm -64, -64)' } else { '-arm64, -x64, -x86 (or -arm, -arm -64, -64, -86)' }
                 throw "Unknown build flag: $a. Use $flags."
             }
         }
@@ -216,13 +232,13 @@ function Remove-PublishArtifacts {
         Remove-Item -LiteralPath $pdb.FullName -Force
     }
 
-    foreach ($name in $publishStripFiles + @("$projectName.ico", "${projectName}256.png", 'VersionBuild')) {
+    foreach ($name in $publishStripFiles) {
         $path = Join-Path $BinFolder $name
         if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
     }
 }
 
-function Set-MacHostExecutable {
+function Set-UnixHostExecutable {
     param([Parameter(Mandatory)][string]$Path)
 
     if (-not (Test-Path -LiteralPath $Path)) { return }
@@ -292,7 +308,7 @@ function New-MacAppBundle {
     $hostFile = Join-Path $binFolder $projectName
     if (-not (Test-Path -LiteralPath $hostFile)) { throw "Missing app host (run build.ps1 first): $hostFile" }
 
-    Set-MacHostExecutable $hostFile
+    Set-UnixHostExecutable $hostFile
     if (Test-Path -LiteralPath $appBundle) { Remove-Item -LiteralPath $appBundle -Recurse -Force }
 
     $macOsDir = Join-Path $appBundle 'Contents/MacOS'
@@ -310,7 +326,7 @@ function New-MacAppBundle {
     if (-not (Test-Path -LiteralPath $macInfoPlist)) { throw "Missing macOS Info.plist template: $macInfoPlist" }
     [IO.File]::WriteAllText((Join-Path $appBundle 'Contents/Info.plist'), ([IO.File]::ReadAllText($macInfoPlist)).Replace('__VERSION__', $versionContents))
 
-    foreach ($p in (Join-Path $macOsDir $projectName), (Join-Path $macOsDir 'updater')) { Set-MacHostExecutable $p }
+    foreach ($p in (Join-Path $macOsDir $projectName), (Join-Path $macOsDir 'updater')) { Set-UnixHostExecutable $p }
     Write-Host "Created $appBundle"
 }
 
@@ -350,17 +366,101 @@ function Get-MacPortableReleaseAssetName {
     '{0}_v{1}_{2}.zip' -f $projectName, $versionContents, $AssetTag
 }
 
+function Get-LinuxDebReleaseAssetName {
+    param([Parameter(Mandatory)][string]$Architecture)
+    $tag = if ($Architecture -eq 'x64') { 'amd64' } else { 'arm64' }
+    '{0}_v{1}_debian-{2}.deb' -f $projectName, $versionContents, $tag
+}
+
+function New-LinuxDebPackage {
+    param([Parameter(Mandatory)][hashtable]$Target)
+
+    if (-not (Get-Command dpkg-deb -ErrorAction SilentlyContinue)) {
+        throw 'dpkg-deb not found. Install dpkg-dev on Debian (sudo apt install dpkg-dev).'
+    }
+
+    $binFolder = $Target.BinFolder
+    $hostFile = $Target.HostPath
+    if (-not (Test-Path -LiteralPath $hostFile)) { throw "Missing app host (run build.ps1 first): $hostFile" }
+
+    $launcherTemplate = Join-RepoPath $linuxDebResources $projectName
+    $desktopTemplate = Join-RepoPath $linuxDebResources "$projectName.desktop"
+    $controlTemplate = Join-RepoPath $linuxDebResources 'control.template'
+    foreach ($path in $launcherTemplate, $desktopTemplate, $controlTemplate, $linuxAppIcon) {
+        if (-not (Test-Path -LiteralPath $path)) { throw "Missing Linux deb template: $path" }
+    }
+
+    $debPath = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $Target.Architecture)
+    if (Test-Path -LiteralPath $debPath) { Remove-Item -LiteralPath $debPath -Force }
+
+    $stagingRoot = Join-Path ([IO.Path]::GetTempPath()) "$projectName-deb-$([Guid]::NewGuid().ToString('N'))"
+    $libDir = Join-RepoPath $stagingRoot 'usr' 'lib' $projectName
+    $binDir = Join-RepoPath $stagingRoot 'usr' 'bin'
+    $applicationsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'applications'
+    $pixmapsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'pixmaps'
+    $debianDir = Join-RepoPath $stagingRoot 'DEBIAN'
+
+    try {
+        New-Item -ItemType Directory -Path $libDir, $binDir, $applicationsDir, $pixmapsDir, $debianDir -Force | Out-Null
+
+        $publishItems = @(Get-ChildItem -LiteralPath $binFolder -Force -ErrorAction Stop)
+        if (-not $publishItems.Count) { throw "Linux publish folder is empty ($($Target.Architecture)): $binFolder" }
+        $publishItems | Copy-Item -Destination $libDir -Recurse -Force
+        $updaterPath = Join-Path $libDir 'updater'
+        if (Test-Path -LiteralPath $updaterPath) { Remove-Item -LiteralPath $updaterPath -Force }
+
+        Set-UnixHostExecutable (Join-Path $libDir $projectName)
+        & chmod -R a+rX $libDir
+        if ($LASTEXITCODE) { throw "chmod failed for $libDir (exit $LASTEXITCODE)" }
+
+        $launcherDest = Join-Path $binDir $projectName
+        Copy-Item -LiteralPath $launcherTemplate -Destination $launcherDest -Force
+        Set-UnixHostExecutable $launcherDest
+
+        Copy-Item -LiteralPath $desktopTemplate -Destination (Join-Path $applicationsDir "$projectName.desktop") -Force
+        Copy-Item -LiteralPath $linuxAppIcon -Destination (Join-Path $pixmapsDir "$projectName.png") -Force
+
+        $installedSizeKb = [int]((& du -sk $stagingRoot) -split '\t')[0]
+        $description = "$projectName Avalonia settings app template."
+        $control = [IO.File]::ReadAllText($controlTemplate)
+        $control = $control.Replace('__PACKAGE__', $projectName).Replace('__VERSION__', $versionContents).Replace('__DEB_ARCH__', $Target.DebArchitecture).Replace('__INSTALLED_SIZE_KB__', "$installedSizeKb").Replace('__MAINTAINER__', "$appPublisher <$appPublisher@users.noreply.github.com>").Replace('__HOMEPAGE__', $appURL).Replace('__DESCRIPTION__', $description).Replace('__EXTENDED_DESCRIPTION__', 'Framework-dependent; install .NET 10 runtime from Microsoft apt repo.')
+        [IO.File]::WriteAllText((Join-Path $debianDir 'control'), $control)
+
+        Write-Host "Building $($Target.Architecture) .deb (AppVersion=$versionContents)"
+        & dpkg-deb --root-owner-group --build $stagingRoot $debPath
+        if ($LASTEXITCODE) { throw "dpkg-deb failed for $($Target.Architecture) (exit $LASTEXITCODE)" }
+        Set-UnixHostExecutable $debPath
+        Write-Host "Created $debPath"
+    }
+    finally {
+        Remove-TreeForce $stagingRoot
+    }
+}
+
 function Copy-ReleaseArtifactsToPublish {
     param([string]$Architecture)
 
     $targets = if ($IsMacOS) {
         if ([string]::IsNullOrWhiteSpace($Architecture)) { $macReleaseTargets } else { @($macReleaseTargets | Where-Object Architecture -eq $Architecture) }
+    } elseif ($IsLinux) {
+        if ([string]::IsNullOrWhiteSpace($Architecture)) { $linuxReleaseTargets } else { @($linuxReleaseTargets | Where-Object Architecture -eq $Architecture) }
     } else {
         if ([string]::IsNullOrWhiteSpace($Architecture)) { $winReleaseTargets } else { @($winReleaseTargets | Where-Object Architecture -eq $Architecture) }
     }
     if (-not $targets.Count) { throw "No release targets for architecture: $Architecture" }
 
     foreach ($target in $targets) {
+        if ($IsLinux) {
+            $debPath = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $target.Architecture)
+            if (-not (Test-Path -LiteralPath $debPath)) {
+                throw "Missing Linux .deb ($($target.Architecture)). Run buildInstaller.ps1 first: $debPath"
+            }
+            $publishDir = $target.BinFolder
+            Remove-TreeForce $publishDir
+            Write-Host "Removed Linux publish output: $publishDir"
+            continue
+        }
+
         if ($IsMacOS) {
             $appBundle = $target.AppBundlePath
             if (-not (Test-Path -LiteralPath $appBundle)) { throw "Missing macOS app bundle (run build.ps1 first): $appBundle" }
@@ -403,5 +503,5 @@ function Copy-ReleaseArtifactsToPublish {
 }
 
 if (($c = (Get-PSCallStack)[1].ScriptName) -and (Split-Path $c -Leaf) -in 'build.ps1', '.run.ps1', 'buildUpdater.ps1') {
-    if ($IsMacOS) { Clear-WindowsBuildArtifacts } else { Clear-MacBuildArtifacts }
+    Invoke-HostBuildPrep
 }

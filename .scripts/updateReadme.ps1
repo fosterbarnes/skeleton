@@ -18,20 +18,22 @@ foreach ($target in $winReleaseTargets) {
 }
 $quickReference['osxX64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetName -AssetTag 'macOS-intel')"
 $quickReference['osxArm64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetName -AssetTag 'macOS-arm')"
+$quickReference['linuxAmd64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName -Architecture 'x64')"
+$quickReference['linuxArm64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName -Architecture 'arm64')"
 
 $refLines = ($quickReference.GetEnumerator() | ForEach-Object { "$($_.Key) = $($_.Value)" }) -join "`n`n"
 $readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --.*?-->', "<!-- Quick Reference --`n$refLines`n-->")
 
 $svgSections = @(
     @{
-        Pattern = '(?s)(?<section>### Windows\b.*?(?=### macOS|## Tabs))'
+        Pattern = '(?s)(?<section>### Windows\b.*?(?=### macOS))'
         Links = @{
             'download_x64.svg' = 'x64Installer'; 'download_x86.svg' = 'x86Installer'; 'download_arm.svg' = 'ARM64Installer'
             'download_portable_x64.svg' = 'x64Portable'; 'download_portable_x86.svg' = 'x86Portable'; 'download_portable_arm64.svg' = 'ARM64Portable'
         }
     }
     @{
-        Pattern = '(?s)(?<section>### macOS\b.*?(?=## Tabs))'
+        Pattern = '(?s)(?<section>### macOS\b.*?(?=### Linux))'
         Links = @{ 'download_appleIntel.svg' = 'osxX64Portable'; 'download_appleArm.svg' = 'osxArm64Portable' }
     }
 )
@@ -45,6 +47,17 @@ foreach ($section in $svgSections) {
         if ([string]::IsNullOrWhiteSpace($url)) { continue }
         $updated = $updated -replace "(<a href=`")[^`"]+(`"><img src=`"\./\.resources/svg/$([regex]::Escape($svg))`")", "`${1}$url`${2}"
     }
+    $readmeUpdated = $readmeUpdated.Replace($text, $updated)
+}
+
+if ($readmeUpdated -match '(?s)(?<section>### Linux \(Debian\)\b.*?(?=## Tabs))') {
+    $text = $Matches['section']
+    $amd64Deb = [IO.Path]::GetFileName($quickReference['linuxAmd64Deb'])
+    $arm64Deb = [IO.Path]::GetFileName($quickReference['linuxArm64Deb'])
+    $updated = $text
+    $updated = [regex]::Replace($updated, 'sudo apt install \./skeleton_v[\d.]+_debian-amd64\.deb', "sudo apt install ./$amd64Deb")
+    $updated = [regex]::Replace($updated, '\[skeleton_v[\d.]+_debian-amd64\.deb\]\([^)]+\)', "[$amd64Deb]($($quickReference['linuxAmd64Deb']))")
+    $updated = [regex]::Replace($updated, '\[skeleton_v[\d.]+_debian-arm64\.deb\]\([^)]+\)', "[$arm64Deb]($($quickReference['linuxArm64Deb']))")
     $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 

@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace skeleton.Platform;
 
-// Pre-main-window errors: Win32 MessageBoxW on Windows, osascript alert on macOS.
-// Linux is planned but not implemented — ShowError is a no-op there today.
+// Pre-main-window errors: Win32 MessageBoxW on Windows, osascript alert on macOS, zenity on Linux.
 public static class NativeDialog
 {
     public static void ShowError(string title, string message)
@@ -18,7 +17,23 @@ public static class NativeDialog
         if (OperatingSystem.IsMacOS())
         {
             RunOsascriptAlert(title, message);
+            return;
         }
+
+        if (OperatingSystem.IsLinux())
+            RunZenityError(title, message);
+    }
+
+    private static void RunZenityError(string title, string message)
+    {
+        using var process = Process.Start(new ProcessStartInfo
+        {
+            FileName = "zenity",
+            ArgumentList = { "--error", $"--title={title}", $"--text={message}", "--no-wrap" },
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        });
+        process?.WaitForExit(5000);
     }
 
     private static void RunOsascriptAlert(string title, string message)

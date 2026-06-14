@@ -21,8 +21,26 @@ function Normalize-PathSlashes {
     return $Path.Replace('\', '/')
 }
 
+function Resolve-CanonicalRepoRoot {
+    param([Parameter(Mandatory)][string]$Root)
+
+    $normalized = (Normalize-PathSlashes $Root).TrimEnd('/')
+    if ($IsLinux -or $IsMacOS) {
+        $resolved = (& readlink -f $normalized 2>$null | Out-String).Trim()
+        if ($resolved) { return (Normalize-PathSlashes $resolved).TrimEnd('/') }
+    }
+
+    try {
+        return (Normalize-PathSlashes (Get-Item -LiteralPath $normalized -ErrorAction Stop).FullName).TrimEnd('/')
+    } catch {
+        return $normalized
+    }
+}
+
+$objBinPathKey = '(?:projectPath|projectUniqueName|outputPath|projectFilePath)'
+
 if (-not $repoRoot) {
-    $repoRoot = (Split-Path $PSScriptRoot -Parent) -replace '\\', '/'
+    $repoRoot = Resolve-CanonicalRepoRoot (Split-Path $PSScriptRoot -Parent)
 }
 
 $copyRepoWinPath = '/Volumes/[C] Windows 11/Users/foster/Documents/GitHub/skeleton'
@@ -33,10 +51,15 @@ $copyRepoMacPathWin = 'Z:\Users\foster\Documents\GitHub\skeleton'
 $copyRepoMacVolumeWin = 'Z:\'
 
 $foreignOsProfiles = @{
-    Mac     = @{ ObjBinRegex = '/(Users|home)/'; PublishSubdirs = 'osx-arm64', 'osx-x64'; RepoFileMarkers = '.DS_Store'; PublishLabel = 'macOS' }
-    Windows = @{ ObjBinRegex = 'win-x64|win-arm64|win-x86|\\Users\\|[A-Z]:\\'; PublishSubdirs = 'x86', 'x64', 'arm64'; RepoFileMarkers = @(); PublishLabel = 'Windows' }
+    Mac     = @{ ObjBinRegex = "`"$objBinPathKey`":\s*`"[^`"]*/Users/"; PublishSubdirs = 'osx-arm64', 'osx-x64'; RepoFileMarkers = '.DS_Store'; PublishLabel = 'macOS' }
+    Windows = @{ ObjBinRegex = "`"$objBinPathKey`":\s*`"[^`"]*(?:[A-Z]:\\\\|\\\\Users\\\\)"; PublishSubdirs = 'x86', 'x64', 'arm64'; RepoFileMarkers = @(); PublishLabel = 'Windows' }
+    Linux   = @{ ObjBinRegex = "`"$objBinPathKey`":\s*`"[^`"]*/home/"; PublishSubdirs = 'linux-x64', 'linux-arm64'; RepoFileMarkers = @(); PublishLabel = 'Linux' }
 }
-$hostForeignProfile = $foreignOsProfiles[$(if ($IsMacOS) { 'Windows' } else { 'Mac' })]
+function Get-HostPlatformKey {
+    if ($IsMacOS) { return 'Mac' }
+    if ($IsLinux) { return 'Linux' }
+    return 'Windows'
+}
 
 function Test-RepoHasForeignOwner {
     param(
@@ -77,14 +100,20 @@ function Remove-TreeForce {
 
     if (-not (Test-Path -LiteralPath $Path)) { return }
 
-    try { Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop }
-    catch { if (-not $IsMacOS) { throw } }
+    if ($IsMacOS -or $IsLinux) { & chmod -R u+rwX $Path 2>$null }
 
-    if ($IsMacOS -and (Test-Path -LiteralPath $Path)) { & /bin/rm -rf -- $Path 2>$null }
+    try { Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop }
+    catch { if (-not $IsMacOS -and -not $IsLinux) { throw } }
+
+    if (($IsMacOS -or $IsLinux) -and (Test-Path -LiteralPath $Path)) {
+        & /bin/rm -rf -- $Path 2>$null
+    }
 
     if (Test-Path -LiteralPath $Path) {
         $hint = if ($IsMacOS) {
             "Close dotnet/MSBuild on the Windows VM if this repo is on a shared folder. If ownership is wrong, run once: sudo chown -R $(whoami):staff `"$repoRoot`""
+        } elseif ($IsLinux) {
+            "Close dotnet/MSBuild. If this repo is on a shared folder, run once: chmod -R u+rwX `"$repoRoot`""
         } else { 'Check folder permissions and retry.' }
         throw "Could not remove '$Path'. $hint"
     }
@@ -95,6 +124,7 @@ function Clear-RepoObjBin {
 
     Get-ChildItem -LiteralPath $Root -Recurse -Directory -Force -ErrorAction SilentlyContinue |
         Where-Object Name -in obj, bin |
+        Sort-Object { $_.FullName.Length } -Descending |
         ForEach-Object { Remove-TreeForce $_.FullName }
 }
 
@@ -221,7 +251,7 @@ function Test-ObjBinForeignArtifacts {
     )
 
     foreach ($dir in Get-ChildItem -LiteralPath $Root -Recurse -Directory -Force -ErrorAction SilentlyContinue | Where-Object Name -in obj, bin) {
-        foreach ($file in Get-ChildItem -LiteralPath $dir.FullName -Include '*.nuget.g.props', 'project.assets.json' -File -Recurse -Force -ErrorAction SilentlyContinue) {
+        foreach ($file in Get-ChildItem -LiteralPath $dir.FullName -Include '*.nuget.dgspec.json', 'project.assets.json', 'project.nuget.cache' -File -Recurse -Force -ErrorAction SilentlyContinue) {
             if ([IO.File]::ReadAllText($file.FullName) -match $Profile.ObjBinRegex) { return $true }
         }
     }
@@ -273,21 +303,34 @@ function Clear-ForeignPublishArtifactsAt {
 function Invoke-HostBuildPrep {
     param([string]$Root = $repoRoot)
 
-    if (-not (Test-CopiedFromForeignOs $Root $hostForeignProfile)) { return }
+    $hostKey = Get-HostPlatformKey
+    $foreignDetected = $false
+    foreach ($key in $foreignOsProfiles.Keys) {
+        if ($key -eq $hostKey) { continue }
+        if (Test-CopiedFromForeignOs $Root $foreignOsProfiles[$key]) {
+            $foreignDetected = $true
+            break
+        }
+    }
+    if (-not $foreignDetected) { return }
 
-    Write-Host "Foreign $($hostForeignProfile.PublishLabel) build remnants detected. Preparing host..."
+    Write-Host 'Foreign build remnants detected. Preparing host...'
     Repair-RepoDeleteAccessAt $Root
-    Clear-ForeignPublishArtifactsAt $Root $hostForeignProfile
+    foreach ($key in $foreignOsProfiles.Keys) {
+        if ($key -eq $hostKey) { continue }
+        Clear-ForeignPublishArtifactsAt $Root $foreignOsProfiles[$key]
+    }
     Write-Host 'Removing all obj/bin...'
     Clear-RepoObjBin $Root
 }
 
 function Clear-MacBuildArtifacts { if (-not $IsMacOS) { Invoke-HostBuildPrep } }
-function Clear-WindowsBuildArtifacts { if ($IsMacOS) { Invoke-HostBuildPrep } }
+function Clear-WindowsBuildArtifacts { if ($IsMacOS -or $IsLinux) { Invoke-HostBuildPrep } }
+function Clear-LinuxBuildArtifacts { if (-not $IsLinux) { Invoke-HostBuildPrep } }
 
 function Initialize-CopiedRepo {
     Set-Location -LiteralPath $repoRoot
-    Write-Host "Preparing folder copy for $(if ($IsMacOS) { 'macOS' } else { 'Windows' })..."
+    Write-Host "Preparing folder copy for $(switch (Get-HostPlatformKey) { 'Mac' { 'macOS' } 'Linux' { 'Linux' } default { 'Windows' } })..."
     if ($IsMacOS) { Ensure-RepoWritable $repoRoot }
     Invoke-HostBuildPrep
     Write-Host 'Ready.'

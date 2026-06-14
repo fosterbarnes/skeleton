@@ -8,6 +8,14 @@ Set-Location -LiteralPath $repoRoot
 
 $targets = Select-BuildTargets $Architecture
 
+if ($IsLinux) {
+    foreach ($t in $targets) {
+        New-LinuxDebPackage $t
+    }
+    Write-Host 'Debian packages built.'
+    return
+}
+
 if ($IsMacOS) {
     Invoke-MacAppBundleCodesign $targets
     Write-Host 'App bundles sealed.'

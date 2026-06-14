@@ -64,6 +64,10 @@ function Invoke-DraftRelease {
         $portable = Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $t.AssetTag)
         Write-Host "  macOS $($t.AssetTag): $portable$(if ($foundOnly) { if (Test-Path -LiteralPath $portable) { ' [found]' } else { ' [missing]' } })"
     }
+    foreach ($t in $linuxReleaseTargets) {
+        $deb = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $t.Architecture)
+        Write-Host "  Linux $($t.DebTag): $deb$(if ($foundOnly) { if (Test-Path -LiteralPath $deb) { ' [found]' } else { ' [missing]' } })"
+    }
 
     $notesFile = Join-Path $env:TEMP "releaseNotes_$tag.txt"
     try {
@@ -80,6 +84,10 @@ function Invoke-DraftRelease {
             foreach ($t in $macReleaseTargets) {
                 $p = Join-Path $publishFolder (Get-MacPortableReleaseAssetName -AssetTag $t.AssetTag)
                 Resolve-ReleaseAssetPath $p "Missing macOS portable ($($t.AssetTag)). Run .buildAll.ps1 on macOS first, or pass -foundOnly to upload found assets only: $p"
+            }
+            foreach ($t in $linuxReleaseTargets) {
+                $p = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $t.Architecture)
+                Resolve-ReleaseAssetPath $p "Missing Linux .deb ($($t.DebTag)). Run .buildAll.ps1 on Debian Linux first, or pass -foundOnly to upload found assets only: $p"
             }
         ) | Where-Object { $_ }
         if (-not $uploadFiles.Count) {

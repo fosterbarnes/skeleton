@@ -9,6 +9,12 @@ $buildAllHelp = if ($IsMacOS) {
 Publish main app, updater, adhoc-sealed app bundle, and portable zip for macOS (osx-arm64, osx-x64) under publish/. Developer ID signing optional via buildInstaller.ps1.
 "@
 }
+elseif ($IsLinux) {
+@"
+.buildAll.ps1 [-arm64 | -arm | -x64 | -arm -64 | -64]
+Publish main app and .deb packages for Debian (linux-x64, linux-arm64) under publish/. Updater not built on Linux in v1.
+"@
+}
 else {
 @"
 .buildAll.ps1 [-arm64 | -arm | -x64 | -x86 | -arm -64 | -64 | -86]

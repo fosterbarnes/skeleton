@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=skeleton
+Comment=skeleton Avalonia settings app
+Icon=skeleton
+Exec=skeleton
+StartupWMClass=skeleton
+Terminal=false
+Type=Application
+Categories=Utility;
+GenericName=skeleton

@@ -18,11 +18,14 @@ foreach ($target in $targets) {
     if ($LASTEXITCODE) { throw "dotnet publish failed ($($target.RuntimeIdentifier) exit $LASTEXITCODE)" }
 }
 
-& (Join-Path $PSScriptRoot 'buildUpdater.ps1') -Architecture $Architecture
-if ($LASTEXITCODE) { throw "buildUpdater failed (exit $LASTEXITCODE)" }
+if (-not $IsLinux) {
+    & (Join-Path $PSScriptRoot 'buildUpdater.ps1') -Architecture $Architecture
+    if ($LASTEXITCODE) { throw "buildUpdater failed (exit $LASTEXITCODE)" }
+}
 
 foreach ($target in $targets) {
     Copy-Item -LiteralPath $version -Destination (Join-Path $target.BinFolder 'Version') -Force
     Remove-PublishArtifacts $target.BinFolder
     if ($IsMacOS) { New-MacAppBundle $target }
+    elseif ($IsLinux) { Set-UnixHostExecutable $target.HostPath }
 }
