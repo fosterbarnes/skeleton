@@ -49,13 +49,18 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 
 #### Install dependencies: 
 
-[.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian)
+
+
+Add the Microsoft package signing key to your list of trusted keys and add the package repository, then install .NET 10 runtime
 
 ```bash
 wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
+sudo apt-get update && sudo apt-get install -y dotnet-runtime-10.0
 ```
+
+Reference: [.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian)
 
 #### Install skeleton:
 
