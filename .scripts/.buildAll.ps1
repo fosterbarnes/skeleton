@@ -12,7 +12,7 @@ Publish main app, updater, adhoc-sealed app bundle, and portable zip for macOS (
 elseif ($IsLinux) {
 @"
 .buildAll.ps1 [-arm64 | -arm | -x64 | -arm -64 | -64]
-Publish main app and .deb packages for Debian (linux-x64, linux-arm64) under publish/. Updater not built on Linux in v1.
+Publish main app and Linux packages under publish/. Debian/Ubuntu builds .deb; Fedora builds .rpm. Updater not built on Linux in v1.
 "@
 }
 else {

@@ -9,10 +9,24 @@ Set-Location -LiteralPath $repoRoot
 $targets = Select-BuildTargets $Architecture
 
 if ($IsLinux) {
+    $format = Get-LinuxPackageFormat
     foreach ($t in $targets) {
-        New-LinuxDebPackage $t
+        if ($format -eq 'rpm') {
+            if (-not (Test-LinuxRpmPackageSupported $t.Architecture)) {
+                $hostCpu = (& uname -m).Trim()
+                $needHost = if ($t.Architecture -eq 'x64') { 'x86_64' } else { 'aarch64' }
+                if ($Architecture) {
+                    throw "$($t.Architecture) RPM cannot be built on $hostCpu Fedora. Build $($t.Architecture) RPM on $needHost Fedora, or use -$(Get-LinuxRpmHostArchitecture) on this host."
+                }
+                Write-Host "Skipping $($t.Architecture) .rpm (rpmbuild on $hostCpu cannot package $(Get-LinuxRpmArchitecture $t.Architecture) RPMs; build on $needHost Fedora)." -ForegroundColor Yellow
+                continue
+            }
+            New-LinuxRpmPackage $t
+        } else {
+            New-LinuxDebPackage $t
+        }
     }
-    Write-Host 'Debian packages built.'
+    Write-Host "$(if ($format -eq 'rpm') { 'Fedora RPM' } else { 'Debian' }) packages built."
     return
 }
 

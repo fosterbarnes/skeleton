@@ -28,7 +28,9 @@ $installerWizardLargeImage = Join-RepoPath $repoRoot '.resources' 'icon' 'instal
 $macInfoPlist = Join-RepoPath $repoRoot '.resources' 'mac' 'Info.plist'
 $macEntitlements = Join-RepoPath $repoRoot '.resources' 'mac' 'Entitlements.plist'
 $macAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' "$projectName.icns"
+$linuxCommonResources = Join-RepoPath $repoRoot '.resources' 'linux' 'common'
 $linuxDebResources = Join-RepoPath $repoRoot '.resources' 'linux' 'debian'
+$linuxFedoraResources = Join-RepoPath $repoRoot '.resources' 'linux' 'fedora'
 $linuxAppIcon = Join-RepoPath $repoRoot '.resources' 'icon' 'skeleton256.png'
 $buildNotes = Join-RepoPath $repoRoot '.md' 'buildNotes.txt'
 $publishFolder = Join-RepoPath $repoRoot 'publish'
@@ -88,6 +90,7 @@ $buildTargets = $expanded[$hostPlatformKey]
 $winReleaseTargets = @($expanded.Windows | ForEach-Object { @{ Architecture = $_.Architecture; BinFolder = $_.BinFolder; InstallerName = $_.InstallerName } })
 $macReleaseTargets = @($expanded.Mac | ForEach-Object { @{ Architecture = $_.Architecture; AssetTag = $_.AssetTag; AppBundlePath = $_.AppBundlePath } })
 $linuxReleaseTargets = @($expanded.Linux | ForEach-Object { @{ Architecture = $_.Architecture; DebTag = $_.DebTag; BinFolder = $_.BinFolder } })
+$linuxRpmReleaseTargets = @($expanded.Linux | ForEach-Object { @{ Architecture = $_.Architecture; RpmTag = $_.DebTag; BinFolder = $_.BinFolder } })
 
 $publishStripCommon = @(
     'Avalonia.DesignerSupport.dll', 'Avalonia.Remote.Protocol.dll',
@@ -352,13 +355,18 @@ function Invoke-MacAppBundleCodesign {
     }
 }
 
+function Get-WinReleaseAssetTag {
+    param([Parameter(Mandatory)][string]$Architecture)
+    "windows-$Architecture"
+}
+
 function Get-WinReleaseAssetName {
     param(
         [Parameter(Mandatory)][ValidateSet('Installer', 'Portable')][string]$Kind,
         [Parameter(Mandatory)][string]$Architecture
     )
     $ext = if ($Kind -eq 'Installer') { 'exe' } else { 'zip' }
-    '{0}{1}_v{2}_{3}.{4}' -f $projectName, $Kind, $versionContents, $Architecture, $ext
+    '{0}_v{1}_{2}.{3}' -f $projectName, $versionContents, (Get-WinReleaseAssetTag $Architecture), $ext
 }
 
 function Get-MacPortableReleaseAssetName {
@@ -366,10 +374,87 @@ function Get-MacPortableReleaseAssetName {
     '{0}_v{1}_{2}.zip' -f $projectName, $versionContents, $AssetTag
 }
 
+function Get-LinuxPackageFormat {
+    $osReleasePath = '/etc/os-release'
+    if (-not (Test-Path -LiteralPath $osReleasePath)) { throw 'Cannot detect Linux distro: /etc/os-release missing.' }
+
+    $osRelease = [IO.File]::ReadAllText($osReleasePath)
+    if ($osRelease -match '(?m)^ID=fedora$') { return 'rpm' }
+    if ($osRelease -match '(?m)^ID=(debian|ubuntu|raspbian)$') { return 'deb' }
+    if ($osRelease -match '(?m)^ID_LIKE=.*debian') { return 'deb' }
+    throw 'Unsupported Linux distro for packaging. Build .deb on Debian/Ubuntu or .rpm on Fedora.'
+}
+
 function Get-LinuxDebReleaseAssetName {
     param([Parameter(Mandatory)][string]$Architecture)
     $tag = if ($Architecture -eq 'x64') { 'amd64' } else { 'arm64' }
     '{0}_v{1}_debian-{2}.deb' -f $projectName, $versionContents, $tag
+}
+
+function Get-LinuxRpmReleaseAssetName {
+    param([Parameter(Mandatory)][string]$Architecture)
+    $tag = if ($Architecture -eq 'x64') { 'amd64' } else { 'arm64' }
+    '{0}_v{1}_fedora-{2}.rpm' -f $projectName, $versionContents, $tag
+}
+
+function Get-LinuxRpmArchitecture {
+    param([Parameter(Mandatory)][string]$Architecture)
+    if ($Architecture -eq 'x64') { 'x86_64' } else { 'aarch64' }
+}
+
+function Get-LinuxRpmHostArchitecture {
+    switch ((& uname -m).Trim()) {
+        'x86_64' { 'x64' }
+        'aarch64' { 'arm64' }
+        default { throw "Unsupported host CPU for RPM packaging: $( (& uname -m).Trim() ). Build RPMs on x86_64 or aarch64 Fedora." }
+    }
+}
+
+function Test-LinuxRpmPackageSupported {
+    param([Parameter(Mandatory)][string]$Architecture)
+    $Architecture -eq (Get-LinuxRpmHostArchitecture)
+}
+
+function New-LinuxPackageStaging {
+    param([Parameter(Mandatory)][hashtable]$Target)
+
+    $binFolder = $Target.BinFolder
+    $hostFile = $Target.HostPath
+    if (-not (Test-Path -LiteralPath $hostFile)) { throw "Missing app host (run build.ps1 first): $hostFile" }
+
+    $launcherTemplate = Join-RepoPath $linuxCommonResources $projectName
+    $desktopTemplate = Join-RepoPath $linuxCommonResources "$projectName.desktop"
+    foreach ($path in $launcherTemplate, $desktopTemplate, $linuxAppIcon) {
+        if (-not (Test-Path -LiteralPath $path)) { throw "Missing Linux package template: $path" }
+    }
+
+    $stagingRoot = Join-Path ([IO.Path]::GetTempPath()) "$projectName-pkg-$([Guid]::NewGuid().ToString('N'))"
+    $libDir = Join-RepoPath $stagingRoot 'usr' 'lib' $projectName
+    $binDir = Join-RepoPath $stagingRoot 'usr' 'bin'
+    $applicationsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'applications'
+    $pixmapsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'pixmaps'
+
+    New-Item -ItemType Directory -Path $libDir, $binDir, $applicationsDir, $pixmapsDir -Force | Out-Null
+
+    $publishItems = @(Get-ChildItem -LiteralPath $binFolder -Force -ErrorAction Stop)
+    if (-not $publishItems.Count) { throw "Linux publish folder is empty ($($Target.Architecture)): $binFolder" }
+    $publishItems | Copy-Item -Destination $libDir -Recurse -Force
+    $updaterPath = Join-Path $libDir 'updater'
+    if (Test-Path -LiteralPath $updaterPath) { Remove-Item -LiteralPath $updaterPath -Force }
+
+    Set-UnixHostExecutable (Join-Path $libDir $projectName)
+    & chmod -R a+rX $libDir
+    if ($LASTEXITCODE) { throw "chmod failed for $libDir (exit $LASTEXITCODE)" }
+
+    $launcherDest = Join-Path $binDir $projectName
+    Copy-Item -LiteralPath $launcherTemplate -Destination $launcherDest -Force
+    Set-UnixHostExecutable $launcherDest
+
+    Copy-Item -LiteralPath $desktopTemplate -Destination (Join-Path $applicationsDir "$projectName.desktop") -Force
+    Copy-Item -LiteralPath $linuxAppIcon -Destination (Join-Path $pixmapsDir "$projectName.png") -Force
+
+    $installedSizeKb = [int]((& du -sk $stagingRoot) -split '\t')[0]
+    return @{ StagingRoot = $stagingRoot; InstalledSizeKb = $installedSizeKb }
 }
 
 function New-LinuxDebPackage {
@@ -379,51 +464,22 @@ function New-LinuxDebPackage {
         throw 'dpkg-deb not found. Install dpkg-dev on Debian (sudo apt install dpkg-dev).'
     }
 
-    $binFolder = $Target.BinFolder
-    $hostFile = $Target.HostPath
-    if (-not (Test-Path -LiteralPath $hostFile)) { throw "Missing app host (run build.ps1 first): $hostFile" }
-
-    $launcherTemplate = Join-RepoPath $linuxDebResources $projectName
-    $desktopTemplate = Join-RepoPath $linuxDebResources "$projectName.desktop"
     $controlTemplate = Join-RepoPath $linuxDebResources 'control.template'
-    foreach ($path in $launcherTemplate, $desktopTemplate, $controlTemplate, $linuxAppIcon) {
-        if (-not (Test-Path -LiteralPath $path)) { throw "Missing Linux deb template: $path" }
-    }
+    if (-not (Test-Path -LiteralPath $controlTemplate)) { throw "Missing Linux deb template: $controlTemplate" }
 
     $debPath = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $Target.Architecture)
     if (Test-Path -LiteralPath $debPath) { Remove-Item -LiteralPath $debPath -Force }
 
-    $stagingRoot = Join-Path ([IO.Path]::GetTempPath()) "$projectName-deb-$([Guid]::NewGuid().ToString('N'))"
-    $libDir = Join-RepoPath $stagingRoot 'usr' 'lib' $projectName
-    $binDir = Join-RepoPath $stagingRoot 'usr' 'bin'
-    $applicationsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'applications'
-    $pixmapsDir = Join-RepoPath $stagingRoot 'usr' 'share' 'pixmaps'
-    $debianDir = Join-RepoPath $stagingRoot 'DEBIAN'
+    $staging = New-LinuxPackageStaging $Target
+    $stagingRoot = $staging.StagingRoot
 
     try {
-        New-Item -ItemType Directory -Path $libDir, $binDir, $applicationsDir, $pixmapsDir, $debianDir -Force | Out-Null
+        $debianDir = Join-RepoPath $stagingRoot 'DEBIAN'
+        New-Item -ItemType Directory -Path $debianDir -Force | Out-Null
 
-        $publishItems = @(Get-ChildItem -LiteralPath $binFolder -Force -ErrorAction Stop)
-        if (-not $publishItems.Count) { throw "Linux publish folder is empty ($($Target.Architecture)): $binFolder" }
-        $publishItems | Copy-Item -Destination $libDir -Recurse -Force
-        $updaterPath = Join-Path $libDir 'updater'
-        if (Test-Path -LiteralPath $updaterPath) { Remove-Item -LiteralPath $updaterPath -Force }
-
-        Set-UnixHostExecutable (Join-Path $libDir $projectName)
-        & chmod -R a+rX $libDir
-        if ($LASTEXITCODE) { throw "chmod failed for $libDir (exit $LASTEXITCODE)" }
-
-        $launcherDest = Join-Path $binDir $projectName
-        Copy-Item -LiteralPath $launcherTemplate -Destination $launcherDest -Force
-        Set-UnixHostExecutable $launcherDest
-
-        Copy-Item -LiteralPath $desktopTemplate -Destination (Join-Path $applicationsDir "$projectName.desktop") -Force
-        Copy-Item -LiteralPath $linuxAppIcon -Destination (Join-Path $pixmapsDir "$projectName.png") -Force
-
-        $installedSizeKb = [int]((& du -sk $stagingRoot) -split '\t')[0]
         $description = "$projectName Avalonia settings app template."
         $control = [IO.File]::ReadAllText($controlTemplate)
-        $control = $control.Replace('__PACKAGE__', $projectName).Replace('__VERSION__', $versionContents).Replace('__DEB_ARCH__', $Target.DebArchitecture).Replace('__INSTALLED_SIZE_KB__', "$installedSizeKb").Replace('__MAINTAINER__', "$appPublisher <$appPublisher@users.noreply.github.com>").Replace('__HOMEPAGE__', $appURL).Replace('__DESCRIPTION__', $description).Replace('__EXTENDED_DESCRIPTION__', 'Framework-dependent; install .NET 10 runtime from Microsoft apt repo.')
+        $control = $control.Replace('__PACKAGE__', $projectName).Replace('__VERSION__', $versionContents).Replace('__DEB_ARCH__', $Target.DebArchitecture).Replace('__INSTALLED_SIZE_KB__', "$($staging.InstalledSizeKb)").Replace('__MAINTAINER__', "$appPublisher <$appPublisher@users.noreply.github.com>").Replace('__HOMEPAGE__', $appURL).Replace('__DESCRIPTION__', $description).Replace('__EXTENDED_DESCRIPTION__', 'Framework-dependent; install .NET 10 runtime from Microsoft apt repo.')
         [IO.File]::WriteAllText((Join-Path $debianDir 'control'), $control)
 
         Write-Host "Building $($Target.Architecture) .deb (AppVersion=$versionContents)"
@@ -434,6 +490,53 @@ function New-LinuxDebPackage {
     }
     finally {
         Remove-TreeForce $stagingRoot
+    }
+}
+
+function New-LinuxRpmPackage {
+    param([Parameter(Mandatory)][hashtable]$Target)
+
+    if (-not (Get-Command rpmbuild -ErrorAction SilentlyContinue)) {
+        throw 'rpmbuild not found. Install rpm-build on Fedora (sudo dnf install rpm-build).'
+    }
+
+    $specTemplate = Join-RepoPath $linuxFedoraResources 'skeleton.spec.template'
+    if (-not (Test-Path -LiteralPath $specTemplate)) { throw "Missing Linux rpm template: $specTemplate" }
+
+    $rpmPath = Join-Path $publishFolder (Get-LinuxRpmReleaseAssetName -Architecture $Target.Architecture)
+    if (Test-Path -LiteralPath $rpmPath) { Remove-Item -LiteralPath $rpmPath -Force }
+
+    $staging = New-LinuxPackageStaging $Target
+    $stagingRoot = $staging.StagingRoot
+    $rpmArch = Get-LinuxRpmArchitecture $Target.Architecture
+    $topDir = Join-Path ([IO.Path]::GetTempPath()) "$projectName-rpm-$([Guid]::NewGuid().ToString('N'))"
+
+    try {
+        New-Item -ItemType Directory -Path (Join-RepoPath $topDir 'BUILD'), (Join-RepoPath $topDir 'BUILDROOT'), (Join-RepoPath $topDir 'SPECS'), (Join-RepoPath $topDir 'RPMS'), (Join-RepoPath $topDir 'SRPMS') -Force | Out-Null
+
+        $description = "$projectName Avalonia settings app template."
+        $requires = 'libX11, libICE, libSM, fontconfig, dotnet-runtime-10.0'
+        $spec = [IO.File]::ReadAllText($specTemplate)
+        $spec = $spec.Replace('__PACKAGE__', $projectName).Replace('__VERSION__', $versionContents).Replace('__RELEASE__', '1').Replace('__RPM_ARCH__', $rpmArch).Replace('__SUMMARY__', $description).Replace('__URL__', $appURL).Replace('__LICENSE__', 'MIT').Replace('__REQUIRES__', $requires).Replace('__DESCRIPTION__', "Framework-dependent; install .NET 10 runtime via dnf.`n$description").Replace('__STAGING_DIR__', $stagingRoot)
+
+        $specPath = Join-RepoPath $topDir 'SPECS' "$projectName.spec"
+        [IO.File]::WriteAllText($specPath, $spec)
+
+        Write-Host "Building $($Target.Architecture) .rpm (AppVersion=$versionContents)"
+        & rpmbuild -bb --define "_topdir $topDir" --define "_build_id_links none" $specPath
+        if ($LASTEXITCODE) { throw "rpmbuild failed for $($Target.Architecture) (exit $LASTEXITCODE)" }
+
+        $rpmOutDir = Join-RepoPath $topDir 'RPMS' $rpmArch
+        $builtRpms = @(Get-ChildItem -LiteralPath $rpmOutDir -Filter '*.rpm' -ErrorAction SilentlyContinue)
+        if (-not $builtRpms.Count) { throw "rpmbuild produced no RPM for $($Target.Architecture): $rpmOutDir" }
+
+        Move-Item -LiteralPath $builtRpms[0].FullName -Destination $rpmPath -Force
+        Set-UnixHostExecutable $rpmPath
+        Write-Host "Created $rpmPath"
+    }
+    finally {
+        Remove-TreeForce $stagingRoot
+        Remove-TreeForce $topDir
     }
 }
 
@@ -451,9 +554,22 @@ function Copy-ReleaseArtifactsToPublish {
 
     foreach ($target in $targets) {
         if ($IsLinux) {
-            $debPath = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $target.Architecture)
-            if (-not (Test-Path -LiteralPath $debPath)) {
-                throw "Missing Linux .deb ($($target.Architecture)). Run buildInstaller.ps1 first: $debPath"
+            $format = Get-LinuxPackageFormat
+            if ($format -eq 'rpm' -and -not (Test-LinuxRpmPackageSupported $target.Architecture)) {
+                if (Test-Path -LiteralPath $target.BinFolder) {
+                    Remove-TreeForce $target.BinFolder
+                    Write-Host "Removed unpublishable Linux output ($($target.Architecture)): $($target.BinFolder)"
+                }
+                continue
+            }
+            $assetPath = if ($format -eq 'rpm') {
+                Join-Path $publishFolder (Get-LinuxRpmReleaseAssetName -Architecture $target.Architecture)
+            } else {
+                Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $target.Architecture)
+            }
+            $label = if ($format -eq 'rpm') { '.rpm' } else { '.deb' }
+            if (-not (Test-Path -LiteralPath $assetPath)) {
+                throw "Missing Linux $label ($($target.Architecture)). Run buildInstaller.ps1 first: $assetPath"
             }
             $publishDir = $target.BinFolder
             Remove-TreeForce $publishDir

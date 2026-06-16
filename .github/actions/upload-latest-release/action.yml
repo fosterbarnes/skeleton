@@ -1,0 +1,60 @@
+name: Upload to latest release
+description: Upload a release asset to the latest GitHub release, replacing same-named assets.
+
+inputs:
+  asset_path:
+    description: Path to the file to upload
+    required: true
+  gh_package:
+    description: Install gh via package manager (debian, fedora, or none when preinstalled)
+    required: false
+    default: none
+
+runs:
+  using: composite
+  steps:
+    - name: Install gh CLI
+      if: inputs.gh_package != 'none'
+      shell: bash
+      run: |
+        case "${{ inputs.gh_package }}" in
+          debian)
+            apt-get update
+            apt-get install -y curl
+            arch="$(dpkg --print-architecture)"
+            case "$arch" in
+              amd64) gh_arch=amd64 ;;
+              arm64) gh_arch=arm64 ;;
+              *) echo "Unsupported Debian arch: $arch" >&2; exit 1 ;;
+            esac
+            gh_version=2.68.1
+            curl -sL "https://github.com/cli/cli/releases/download/v${gh_version}/gh_${gh_version}_linux_${gh_arch}.tar.gz" \
+              | tar xz -C /usr/local --strip-components=1
+            ;;
+          fedora)
+            dnf install -y gh
+            ;;
+          *)
+            echo "Unknown gh_package: ${{ inputs.gh_package }}" >&2
+            exit 1
+            ;;
+        esac
+
+    - name: Upload to latest release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        asset="${{ inputs.asset_path }}"
+        if [ ! -f "$asset" ]; then
+          echo "Asset not found: $asset" >&2
+          exit 1
+        fi
+        tag=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+        if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+          echo "No published release found." >&2
+          exit 1
+        fi
+        echo "Uploading $(basename "$asset") to release $tag"
+        gh release upload "$tag" "$asset" --clobber

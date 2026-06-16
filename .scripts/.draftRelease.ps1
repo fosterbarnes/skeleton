@@ -66,7 +66,11 @@ function Invoke-DraftRelease {
     }
     foreach ($t in $linuxReleaseTargets) {
         $deb = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $t.Architecture)
-        Write-Host "  Linux $($t.DebTag): $deb$(if ($foundOnly) { if (Test-Path -LiteralPath $deb) { ' [found]' } else { ' [missing]' } })"
+        Write-Host "  Linux deb $($t.DebTag): $deb$(if ($foundOnly) { if (Test-Path -LiteralPath $deb) { ' [found]' } else { ' [missing]' } })"
+    }
+    foreach ($t in $linuxRpmReleaseTargets) {
+        $rpm = Join-Path $publishFolder (Get-LinuxRpmReleaseAssetName -Architecture $t.Architecture)
+        Write-Host "  Linux rpm $($t.RpmTag): $rpm$(if ($foundOnly) { if (Test-Path -LiteralPath $rpm) { ' [found]' } else { ' [missing]' } })"
     }
 
     $notesFile = Join-Path $env:TEMP "releaseNotes_$tag.txt"
@@ -88,6 +92,10 @@ function Invoke-DraftRelease {
             foreach ($t in $linuxReleaseTargets) {
                 $p = Join-Path $publishFolder (Get-LinuxDebReleaseAssetName -Architecture $t.Architecture)
                 Resolve-ReleaseAssetPath $p "Missing Linux .deb ($($t.DebTag)). Run .buildAll.ps1 on Debian Linux first, or pass -foundOnly to upload found assets only: $p"
+            }
+            foreach ($t in $linuxRpmReleaseTargets) {
+                $p = Join-Path $publishFolder (Get-LinuxRpmReleaseAssetName -Architecture $t.Architecture)
+                Resolve-ReleaseAssetPath $p "Missing Linux .rpm ($($t.RpmTag)). Run .buildAll.ps1 on Fedora Linux first, or pass -foundOnly to upload found assets only: $p"
             }
         ) | Where-Object { $_ }
         if (-not $uploadFiles.Count) {

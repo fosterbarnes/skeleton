@@ -17,16 +17,19 @@ public static class ReleaseAssetNames
             };
         }
 
-        return ArchitectureHelper.GetCurrentArchitecture();
+        return ArchitectureHelper.GetCurrentArchitecture() switch
+        {
+            "x64" => "windows-x64",
+            "x86" => "windows-x86",
+            "arm64" => "windows-arm64",
+            _ => throw new PlatformNotSupportedException("Unsupported Windows architecture for portable updates."),
+        };
     }
 
     public static string PortableZip(string version, string assetTag)
     {
         var normalizedVersion = GitHubRelease.NormalizeTag(version);
-        if (assetTag.StartsWith("macOS-", StringComparison.Ordinal))
-            return $"{AppBranding.Slug}_v{normalizedVersion}_{assetTag}.zip";
-
-        return $"{AppBranding.PortableZipAssetPrefix}_v{normalizedVersion}_{assetTag}.zip";
+        return $"{AppBranding.Slug}_v{normalizedVersion}_{assetTag}.zip";
     }
 }
 

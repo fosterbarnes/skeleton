@@ -31,7 +31,5 @@ public static class AppBranding
 
     public const string UserAgent = Slug + "-updater";
 
-    public const string PortableZipAssetPrefix = Slug + "Portable";
-
     public static string TempUpdateFolderPrefix => $"{Slug}-update";
 }

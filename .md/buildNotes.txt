@@ -1,1 +1,4 @@
-Add debian linux support (v0.4.2)
+Add fedora linux support (v0.4.3)
+
+- Support fedora and build x64 and arm64 '.rpm's
+- Add workflow for building fedora x64 variant

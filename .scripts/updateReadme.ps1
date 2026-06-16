@@ -20,6 +20,8 @@ $quickReference['osxX64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetN
 $quickReference['osxArm64Portable'] = "$releaseBase/$(Get-MacPortableReleaseAssetName -AssetTag 'macOS-arm')"
 $quickReference['linuxAmd64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName -Architecture 'x64')"
 $quickReference['linuxArm64Deb'] = "$releaseBase/$(Get-LinuxDebReleaseAssetName -Architecture 'arm64')"
+$quickReference['linuxAmd64Rpm'] = "$releaseBase/$(Get-LinuxRpmReleaseAssetName -Architecture 'x64')"
+$quickReference['linuxArm64Rpm'] = "$releaseBase/$(Get-LinuxRpmReleaseAssetName -Architecture 'arm64')"
 
 $refLines = ($quickReference.GetEnumerator() | ForEach-Object { "$($_.Key) = $($_.Value)" }) -join "`n`n"
 $readmeUpdated = [regex]::Replace($readmeContents, '(?s)<!-- Quick Reference --?>?\s*.*?\s*-->', "<!-- Quick Reference --`n$refLines`n-->")
@@ -51,7 +53,7 @@ foreach ($section in $svgSections) {
     $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 
-if ($readmeUpdated -match '(?s)(?<section>### Debian Linux\b.*?(?=## Tabs))') {
+if ($readmeUpdated -match '(?s)(?<section>### Debian Linux\b.*?(?=### Fedora Linux))') {
     $text = $Matches['section']
     $amd64Deb = [IO.Path]::GetFileName($quickReference['linuxAmd64Deb'])
     $arm64Deb = [IO.Path]::GetFileName($quickReference['linuxArm64Deb'])
@@ -60,6 +62,18 @@ if ($readmeUpdated -match '(?s)(?<section>### Debian Linux\b.*?(?=## Tabs))') {
     $updated = [regex]::Replace($updated, 'wget https://github\.com/[^/\s]+/[^/\s]+/releases/download/v[\d.]+/skeleton_v[\d.]+_debian-arm64\.deb', "wget $($quickReference['linuxArm64Deb'])")
     $updated = [regex]::Replace($updated, 'sudo apt install \./skeleton_v[\d.]+_debian-amd64\.deb', "sudo apt install ./$amd64Deb")
     $updated = [regex]::Replace($updated, 'sudo apt install \./skeleton_v[\d.]+_debian-arm64\.deb', "sudo apt install ./$arm64Deb")
+    $readmeUpdated = $readmeUpdated.Replace($text, $updated)
+}
+
+if ($readmeUpdated -match '(?s)(?<section>### Fedora Linux\b.*?(?=## Tabs))') {
+    $text = $Matches['section']
+    $amd64Rpm = [IO.Path]::GetFileName($quickReference['linuxAmd64Rpm'])
+    $arm64Rpm = [IO.Path]::GetFileName($quickReference['linuxArm64Rpm'])
+    $updated = $text
+    $updated = [regex]::Replace($updated, 'wget https://github\.com/[^/\s]+/[^/\s]+/releases/download/v[\d.]+/skeleton_v[\d.]+_fedora-amd64\.rpm', "wget $($quickReference['linuxAmd64Rpm'])")
+    $updated = [regex]::Replace($updated, 'wget https://github\.com/[^/\s]+/[^/\s]+/releases/download/v[\d.]+/skeleton_v[\d.]+_fedora-arm64\.rpm', "wget $($quickReference['linuxArm64Rpm'])")
+    $updated = [regex]::Replace($updated, 'sudo dnf install \./skeleton_v[\d.]+_fedora-amd64\.rpm', "sudo dnf install ./$amd64Rpm")
+    $updated = [regex]::Replace($updated, 'sudo dnf install \./skeleton_v[\d.]+_fedora-arm64\.rpm', "sudo dnf install ./$arm64Rpm")
     $readmeUpdated = $readmeUpdated.Replace($text, $updated)
 }
 
