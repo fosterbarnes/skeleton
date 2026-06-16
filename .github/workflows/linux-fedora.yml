@@ -7,6 +7,12 @@ on:
         description: Add to latest release
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      add_to_latest_release:
+        description: Add to latest release
+        type: boolean
+        default: false
 
 permissions:
   contents: write

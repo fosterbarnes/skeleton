@@ -14,24 +14,24 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 
 <table border="0"><tbody><tr>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x64.exe">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x64.exe">
 <img src="./.resources/svg/download_x64.svg" width="180" height="auto" alt="x64 installer"/></a></td>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x86.exe">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x86.exe">
 <img src="./.resources/svg/download_x86.svg" width="180" height="auto" alt="x86 installer"/></a></td>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-arm64.exe"><img src="./.resources/svg/download_arm.svg" width="180" height="auto" alt="ARM64 installer"/></a></td>
 </tr></tbody></table>
 
 <table border="0"><tbody><tr>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x64.zip">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x64.zip">
 <img src="./.resources/svg/download_portable_x64.svg" width="180" height="auto" alt="x64 portable"/></a></td>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x86.zip">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x86.zip">
 <img src="./.resources/svg/download_portable_x86.svg" width="180" height="auto" alt="x86 portable"/></a></td>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-arm64.zip">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-arm64.zip">
 <img src="./.resources/svg/download_portable_arm64.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr></tbody></table>
 
@@ -39,10 +39,10 @@ Cross-platform Avalonia app skeleton for .NET C# projects with theming, tabs, se
 
 <table border="0"><tbody><tr>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_macOS-intel.zip">
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_macOS-intel.zip">
 <img src="./.resources/svg/download_appleIntel.svg" width="180" height="auto" alt="x64 portable"/></a></td>
 <td align="center" valign="top">
-<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
+<a href="https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_macOS-arm.zip"><img src="./.resources/svg/download_appleArm.svg" width="180" height="auto" alt="ARM64 portable"/></a></td>
 </tr></tbody></table>
 
 ### Debian Linux (Debian 12-13, Ubuntu 24.04-26.04)
@@ -68,15 +68,15 @@ Reference: [.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/insta
 amd64:
 
 ```bash
-wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_debian-amd64.deb
-sudo apt install ./skeleton_v0.4.3_debian-amd64.deb
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_debian-amd64.deb
+sudo apt install ./skeleton_v0.4.4_debian-amd64.deb
 ```
 
 arm64:
 
 ```bash
-wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_debian-arm64.deb
-sudo apt install ./skeleton_v0.4.3_debian-arm64.deb
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_debian-arm64.deb
+sudo apt install ./skeleton_v0.4.4_debian-arm64.deb
 ```
 </details>
 
@@ -100,15 +100,15 @@ Reference: [.NET 10 runtime](https://learn.microsoft.com/en-us/dotnet/core/insta
 amd64:
 
 ```bash
-wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_fedora-amd64.rpm
-sudo dnf install ./skeleton_v0.4.3_fedora-amd64.rpm
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_fedora-amd64.rpm
+sudo dnf install ./skeleton_v0.4.4_fedora-amd64.rpm
 ```
 
 arm64:
 
 ```bash
-wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_fedora-arm64.rpm
-sudo dnf install ./skeleton_v0.4.3_fedora-arm64.rpm
+wget https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_fedora-arm64.rpm
+sudo dnf install ./skeleton_v0.4.4_fedora-arm64.rpm
 ```
 </details>
 
@@ -173,30 +173,30 @@ sudo dnf install ./skeleton_v0.4.3_fedora-arm64.rpm
 | Fedora Linux | x64, arm64
 
 <!-- Quick Reference --
-version = 0.4.3
+version = 0.4.4
 
-x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x64.exe
+x64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x64.exe
 
-x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x64.zip
+x64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x64.zip
 
-x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x86.exe
+x86Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x86.exe
 
-x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-x86.zip
+x86Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-x86.zip
 
-ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-arm64.exe
+ARM64Installer = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-arm64.exe
 
-ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_windows-arm64.zip
+ARM64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_windows-arm64.zip
 
-osxX64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_macOS-intel.zip
+osxX64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_macOS-intel.zip
 
-osxArm64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_macOS-arm.zip
+osxArm64Portable = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_macOS-arm.zip
 
-linuxAmd64Deb = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_debian-amd64.deb
+linuxAmd64Deb = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_debian-amd64.deb
 
-linuxArm64Deb = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_debian-arm64.deb
+linuxArm64Deb = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_debian-arm64.deb
 
-linuxAmd64Rpm = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_fedora-amd64.rpm
+linuxAmd64Rpm = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_fedora-amd64.rpm
 
-linuxArm64Rpm = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.3/skeleton_v0.4.3_fedora-arm64.rpm
+linuxArm64Rpm = https://github.com/fosterbarnes/skeleton/releases/download/v0.4.4/skeleton_v0.4.4_fedora-arm64.rpm
 -->
 

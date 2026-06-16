@@ -1,4 +1,4 @@
-Add fedora linux support (v0.4.3)
+Minor fixes and improvements (v0.4.4)
 
-- Support fedora and build x64 and arm64 '.rpm's
-- Add workflow for building fedora x64 variant
+- Fix linux font settings
+- Add workflow to build all others and add to latest release

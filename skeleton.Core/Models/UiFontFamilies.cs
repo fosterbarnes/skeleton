@@ -9,14 +9,22 @@ public static class UiFontFamilies
     public const string Consolas = "Consolas";
     public const string Menlo = "Menlo";
     public const string MenloStack = "Menlo, SF Mono, Monaco";
+    public const string Cantarell = "Cantarell";
+    public const string CantarellStack = "Cantarell, sans-serif";
+    public const string LiberationSans = "Liberation Sans";
+    public const string LiberationMono = "Liberation Mono";
 
     public static string DefaultMain =>
-        OperatingSystem.IsMacOS() ? "Tahoma" : SegoeUi;
+        OperatingSystem.IsMacOS() ? "Tahoma"
+        : OperatingSystem.IsLinux() ? LiberationSans
+        : SegoeUi;
 
     public static string DefaultMono =>
-        OperatingSystem.IsMacOS() ? Menlo : Consolas;
+        OperatingSystem.IsMacOS() ? Menlo
+        : OperatingSystem.IsLinux() ? LiberationMono
+        : Consolas;
 
-    public static readonly FontFamilyOption[] MainChoices =
+    private static readonly FontFamilyOption[] WindowsMainChoices =
     [
         new(SegoeUi, SegoeUi),
         new("Arial", "Arial"),
@@ -27,22 +35,54 @@ public static class UiFontFamilies
         new("Times New Roman", "Times New Roman"),
     ];
 
-    public static readonly FontFamilyOption[] MonoChoices =
+    private static readonly FontFamilyOption[] WindowsMonoChoices =
     [
         new(Consolas, Consolas),
-        new(Menlo, Menlo),
-        new("SF Mono", "SF Mono"),
-        new("Monaco", "Monaco"),
         new("Cascadia Mono", "Cascadia Mono"),
         new("Cascadia Code", "Cascadia Code"),
         new("Courier New", "Courier New"),
         new("Lucida Console", "Lucida Console"),
     ];
 
-    public static string[] MainValues { get; } = MainChoices.Select(c => c.Value).ToArray();
-    public static string[] MainLabels { get; } = MainChoices.Select(c => c.Label).ToArray();
-    public static string[] MonoValues { get; } = MonoChoices.Select(c => c.Value).ToArray();
-    public static string[] MonoLabels { get; } = MonoChoices.Select(c => c.Label).ToArray();
+    private static readonly FontFamilyOption[] MacMonoChoices =
+    [
+        new(Menlo, Menlo),
+        new("SF Mono", "SF Mono"),
+        new("Monaco", "Monaco"),
+        new(Consolas, Consolas),
+        new("Cascadia Mono", "Cascadia Mono"),
+        new("Cascadia Code", "Cascadia Code"),
+        new("Courier New", "Courier New"),
+    ];
+
+    private static readonly FontFamilyOption[] LinuxMainChoices =
+    [
+        new(LiberationSans, LiberationSans),
+        new(Cantarell, Cantarell),
+        new("Adwaita Sans", "Adwaita Sans"),
+        new("Noto Sans", "Noto Sans"),
+        new("Droid Sans", "Droid Sans"),
+    ];
+
+    private static readonly FontFamilyOption[] LinuxMonoChoices =
+    [
+        new(LiberationMono, LiberationMono),
+        new("Adwaita Mono", "Adwaita Mono"),
+        new("Noto Sans Mono", "Noto Sans Mono"),
+    ];
+
+    public static FontFamilyOption[] MainChoices =>
+        OperatingSystem.IsLinux() ? LinuxMainChoices : WindowsMainChoices;
+
+    public static FontFamilyOption[] MonoChoices =>
+        OperatingSystem.IsMacOS() ? MacMonoChoices
+        : OperatingSystem.IsLinux() ? LinuxMonoChoices
+        : WindowsMonoChoices;
+
+    public static string[] MainValues => MainChoices.Select(c => c.Value).ToArray();
+    public static string[] MainLabels => MainChoices.Select(c => c.Label).ToArray();
+    public static string[] MonoValues => MonoChoices.Select(c => c.Value).ToArray();
+    public static string[] MonoLabels => MonoChoices.Select(c => c.Label).ToArray();
 
     public static string NormalizeMain(string? value) => Normalize(value, MainChoices, DefaultMain);
 
@@ -59,10 +99,17 @@ public static class UiFontFamilies
 
     public static int IndexOfMono(string? value) => IndexOf(value, MonoChoices, DefaultMono);
 
-    public static string ResolveMainStack(string name) =>
-        string.Equals(name, SegoeUi, StringComparison.OrdinalIgnoreCase)
-            ? SegoeUiStack
-            : name;
+    public static string ResolveMainStack(string name)
+    {
+        if (string.Equals(name, SegoeUi, StringComparison.OrdinalIgnoreCase))
+            return SegoeUiStack;
+
+        if (OperatingSystem.IsLinux()
+            && string.Equals(name, Cantarell, StringComparison.OrdinalIgnoreCase))
+            return CantarellStack;
+
+        return name;
+    }
 
     public static string ResolveMonoStack(string name) =>
         string.Equals(name, Menlo, StringComparison.OrdinalIgnoreCase)
